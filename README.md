@@ -13,3 +13,7 @@
 
 **Resources:**
 - Trello: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
+
+---
+
+[nexisrealms.com](http://www.nexisrealms.com)
