@@ -8,7 +8,7 @@ using System.Xml;
 using Rocket.Unturned;
 using Steamworks;
 
-namespace NEXIS.TNRLivemap
+namespace NEXIS.Livemap
 {
     public class DataQueue
     {
@@ -38,7 +38,6 @@ namespace NEXIS.TNRLivemap
                         uPlayer.SteamProfile.AvatarMedium.ToString(),
                         uPlayer.SteamProfile.Headline,
                         uPlayer.CSteamID.ToString(),
-                        //uPlayer.IP,
                         uPlayer.IsPro,
                         uPlayer.IsAdmin,
                         uPlayer.GodMode,

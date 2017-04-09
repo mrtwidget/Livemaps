@@ -1,0 +1,15 @@
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Livemap.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Livemap.pdb
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Assembly-CSharp-firstpass.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Assembly-CSharp.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\I18N.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\I18N.West.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\MySql.Data.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Rocket.API.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Rocket.Core.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\Rocket.Unturned.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\bin\Debug\UnityEngine.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\obj\Debug\Livemap.csprojResolveAssemblyReference.cache
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\obj\Debug\Livemap.dll
+C:\Users\Michael\Documents\GitHub\TNRLivemap\TNRLivemap\obj\Debug\Livemap.pdb

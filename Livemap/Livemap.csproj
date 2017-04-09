@@ -7,8 +7,8 @@
     <ProjectGuid>{86779A25-684E-4191-838F-CDDC2173E537}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NEXIS.TNRLivemap</RootNamespace>
-    <AssemblyName>TNRLivemap</AssemblyName>
+    <RootNamespace>NEXIS.Livemap</RootNamespace>
+    <AssemblyName>Livemap</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -73,9 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseManager.cs" />
-    <Compile Include="TNRLivemap.cs" />
+    <Compile Include="Livemap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TNRLivemapConfiguration.cs" />
+    <Compile Include="LivemapConfiguration.cs" />
     <Compile Include="DataQueue.cs" />
   </ItemGroup>
   <ItemGroup>

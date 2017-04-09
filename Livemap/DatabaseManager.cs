@@ -7,7 +7,7 @@ using Rocket.Core.Logging;
 using Rocket.API;
 using System;
 
-namespace NEXIS.TNRLivemap
+namespace NEXIS.Livemap
 {
     public class DatabaseManager
     {

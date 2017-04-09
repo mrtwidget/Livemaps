@@ -4,9 +4,9 @@ using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
 using System.Collections.Generic;
 
-namespace NEXIS.TNRLivemap
+namespace NEXIS.Livemap
 {
-    public class Livemap : RocketPlugin<TNRLivemapConfiguration>
+    public class Livemap : RocketPlugin<LivemapConfiguration>
     {
         public static Livemap Instance;
         public DateTime? TimeSinceRefresh = null;

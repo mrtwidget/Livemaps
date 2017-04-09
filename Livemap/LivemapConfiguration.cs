@@ -1,8 +1,8 @@
 ﻿using Rocket.API;
 
-namespace NEXIS.TNRLivemap
+namespace NEXIS.Livemap
 {
-    public class TNRLivemapConfiguration : IRocketPluginConfiguration
+    public class LivemapConfiguration : IRocketPluginConfiguration
     {
         public int RefreshInterval;
         public string LivemapXML;
