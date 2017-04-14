@@ -2,6 +2,11 @@
 
 ---
 
+**Notice**
+***This plugin is still under development and is not production ready.***
+
+---
+
 **How to Install:**
 
 ***Plugin***
