@@ -2,7 +2,7 @@
 
 ---
 
-**Notice**
+**Notice:**
 ***This plugin is still under development and is not production ready.***
 
 ---
@@ -45,6 +45,7 @@
     - God Mode
     - Vanish Mode
     - Dead
+    - Dead Body Location
     - In Vehicle
 - Player Appearance
     - Skin Color

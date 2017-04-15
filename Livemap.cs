@@ -3,12 +3,10 @@ using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
-using Rocket.Unturned.Skills;
 using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Rocket.API.Collections;
 using Rocket.API;
 using UnityEngine;
@@ -45,6 +43,9 @@ namespace NEXIS.Livemap
 
         protected override void Unload()
         {
+            // update all player `last_disconnect` columns
+            Livemap.Instance.Database.Unload();
+
             U.Events.OnPlayerConnected -= Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead -= Events_OnPlayerDead;
@@ -70,86 +71,25 @@ namespace NEXIS.Livemap
 
         public void FixedUpdate()
         {
-            if (Livemap.Instance.LastRefresh == null || ((DateTime.Now - Livemap.Instance.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.RefreshInterval))
+            if (this.State == PluginState.Loaded && Livemap.Instance.LastRefresh == null || (DateTime.Now - this.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.RefreshInterval)
             {
-                /* Server Data */
-                ServerData server = new ServerData(
-                    Provider.serverID, Provider.serverName, Provider.APP_VERSION, Provider.map, Provider.clients.Count, Provider.maxPlayers, Provider.isPvP, Provider.isGold, 
-                    Provider.hasCheats, Provider.hideAdmins, LightingManager.time, LightingManager.cycle, LightingManager.isFullMoon, Time.time, Provider.packetsReceived,
-                    Provider.packetsSent, Provider.port, Provider.mode
-                );
+                // foreach index
+                int i = 0;
 
-                /* Player Data */
-                PlayerData[] players = new PlayerData[Provider.clients.Count];
-                int i = 0; // index
+                // refresh server data
+                Livemap.Instance.Database.RefreshServer();
 
+                // loop through each player and update the database
                 foreach (SteamPlayer player in Provider.clients)
                 {
-                    // Convert SteamPlayer into UnturnedPlayer
-                    UnturnedPlayer plr = UnturnedPlayer.FromSteamPlayer(player);
-
-                    // Gather player details
-                    players[i] = new PlayerData(
-                        plr.CSteamID,
-                        plr.CharacterName, plr.DisplayName,
-                        plr.SteamGroupID, plr.SteamProfile.AvatarMedium, plr.SteamProfile.Headline,
-                        plr.IP, plr.Ping,
-                        plr.IsPro, plr.IsAdmin, plr.GodMode, plr.VanishMode,
-                        plr.IsInVehicle,
-                            plr.CurrentVehicle.enabled,
-                            plr.CurrentVehicle.isDriver,
-                            plr.CurrentVehicle.instanceID,
-                            plr.CurrentVehicle.id,
-                            plr.CurrentVehicle.fuel,
-                            plr.CurrentVehicle.health,
-                            plr.CurrentVehicle.headlightsOn,
-                            plr.CurrentVehicle.taillightsOn,
-                            plr.CurrentVehicle.sirensOn,
-                            plr.CurrentVehicle.speed,
-                            plr.CurrentVehicle.hasBattery,
-                            plr.CurrentVehicle.batteryCharge,
-                            plr.CurrentVehicle.isExploded,
-                            plr.CurrentVehicle.isLocked,
-                            plr.CurrentVehicle.lockedOwner,
-                        plr.Position, plr.Rotation,                        
-                        plr.Dead,
-                        plr.Player.clothing.skin,
-                        plr.Player.clothing.hair,
-                        plr.Player.clothing.face,
-                        plr.Player.clothing.beard,
-                        plr.Player.clothing.visualHat,
-                        plr.Player.clothing.visualGlasses,
-                        plr.Player.clothing.visualMask,
-                        plr.Bleeding, plr.Broken,
-                        plr.Health, plr.Stamina, plr.Hunger, plr.Thirst, plr.Infection,
-                        plr.Experience, plr.Reputation,
-                        plr.GetSkillLevel(UnturnedSkill.Agriculture),
-                        plr.GetSkillLevel(UnturnedSkill.Cardio),
-                        plr.GetSkillLevel(UnturnedSkill.Cooking),
-                        plr.GetSkillLevel(UnturnedSkill.Crafting),
-                        plr.GetSkillLevel(UnturnedSkill.Dexerity),
-                        plr.GetSkillLevel(UnturnedSkill.Diving),
-                        plr.GetSkillLevel(UnturnedSkill.Engineer),
-                        plr.GetSkillLevel(UnturnedSkill.Exercise),
-                        plr.GetSkillLevel(UnturnedSkill.Fishing),
-                        plr.GetSkillLevel(UnturnedSkill.Healing),
-                        plr.GetSkillLevel(UnturnedSkill.Immunity),
-                        plr.GetSkillLevel(UnturnedSkill.Mechanic),
-                        plr.GetSkillLevel(UnturnedSkill.Outdoors),
-                        plr.GetSkillLevel(UnturnedSkill.Overkill),
-                        plr.GetSkillLevel(UnturnedSkill.Parkour),
-                        plr.GetSkillLevel(UnturnedSkill.Sharpshooter),
-                        plr.GetSkillLevel(UnturnedSkill.Sneakybeaky),
-                        plr.GetSkillLevel(UnturnedSkill.Strength),
-                        plr.GetSkillLevel(UnturnedSkill.Survival),
-                        plr.GetSkillLevel(UnturnedSkill.Toughness),
-                        plr.GetSkillLevel(UnturnedSkill.Vitality),
-                        plr.GetSkillLevel(UnturnedSkill.Warmblooded),
-                        IsPlayerHidden(plr)
-                    );
+                    // refresh player data
+                    Livemap.Instance.Database.RefreshPlayer(UnturnedPlayer.FromSteamPlayer(player));
 
                     ++i; // increment index
                 }
+
+                // update refresh timestamp
+                Livemap.Instance.LastRefresh = DateTime.Now;
             }
         }
 
@@ -189,7 +129,7 @@ namespace NEXIS.Livemap
         public void Events_OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
             // save kill data
-            Livemap.Instance.Database.OnPlayerDeath(player, cause, limb, murderer);
+            //Livemap.Instance.Database.OnPlayerDeath(player, cause, limb, murderer);
         }
 
         public void Events_OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle)

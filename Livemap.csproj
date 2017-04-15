@@ -78,12 +78,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLivemap.cs" />
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="Livemap.cs" />
-    <Compile Include="PlayerData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LivemapConfiguration.cs" />
-    <Compile Include="ServerData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Libraries\" />

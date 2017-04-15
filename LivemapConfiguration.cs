@@ -5,7 +5,8 @@ namespace NEXIS.Livemap
     public class LivemapConfiguration : IRocketPluginConfiguration
     {
         public int RefreshInterval;
-        public bool PlayersCanHide;
+        public bool EnableWorldChat;
+        public bool EnableHiding;
         public bool EnableHideCooldown;
         public int PlayerHideDuration;
         public int HideCooldownDuration;
@@ -17,12 +18,14 @@ namespace NEXIS.Livemap
         public int DatabasePort;
         public string DatabaseTableLivemapServers;
         public string DatabaseTableLivemapData;
+        public string DatabaseTableLivemapChat;
 
         public void LoadDefaults()
         {
             // General Settings
             RefreshInterval = 15;
-            PlayersCanHide = true;
+            EnableWorldChat = true;
+            EnableHiding = true;
             EnableHideCooldown = false;
             PlayerHideDuration = 300;
             HideCooldownDuration = 600;
@@ -34,7 +37,8 @@ namespace NEXIS.Livemap
             DatabaseName = "unturned";
             DatabasePort = 3306;
             DatabaseTableLivemapServers = "livemap_servers";
-            DatabaseTableLivemapData = "livemap_data";            
+            DatabaseTableLivemapData = "livemap_data";
+            DatabaseTableLivemapChat = "livemap_chat";
         }
     }
 }
