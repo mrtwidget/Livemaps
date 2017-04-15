@@ -1,14 +1,17 @@
 # Livemaps
 
----
-
 **How to Install:**
 
 ***Plugin***
 1. Compile project
 2. Copy Livemap.dll to Unturned rocket plugin directory
 3. Start/stop server to generate config and configure MySQL database
-4. Restart Server
+4. Add Rocket permission for `/livemap` command to Permissions.config.xml
+5. Restart Server
+
+***API***
+1. Edit `www/api/config.api.php` and configure MySQL database connection settings
+2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
 
 ***Web UI***
 
