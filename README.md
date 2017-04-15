@@ -4,7 +4,7 @@
 
 ***Plugin***
 1. Compile project
-2. Copy Livemap.dll to Unturned rocket plugin directory
+2. Copy `Livemap.dll` to Unturned rocket plugin directory
 3. Start/stop server to generate config and configure MySQL database
 4. Add Rocket permission for `/livemap` command to Permissions.config.xml
 5. Restart Server

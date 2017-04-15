@@ -85,78 +85,79 @@ namespace NEXIS.Livemap
                 {
                     // table doesn't exist, create it!
                     MySQLCommand.CommandText = "CREATE TABLE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + 
-                        " ( CSteamID VARCHAR(32) NOT NULL," +
-                            "character_name VARCHAR(100) NULL," +
-                            "display_name VARCHAR(100) NULL," +
-                            "steam_group_id VARCHAR(32) NULL," +
-                            "steam_avatar_medium VARCHAR(255) NULL," +
-                            "ip_address VARCHAR(255) NULL," +
-                            "ping DECIMAL(8,6) NULL," +
-                            "is_pro TINYINT(1) NULL," +
-                            "is_admin TINYINT(1) NULL," +
-                            "is_god TINYINT(1) NULL," +
-                            "is_vanished TINYINT(1) NULL," +
-                            "in_vehicle TINYINT(1) NULL," +
-                            "vehicle_is_driver TINYINT(1) NULL," +
-                            "vehicle_instance_id INT(8) NULL," +
-                            "vehicle_id INT(8) NULL," +
-                            "vehicle_fuel INT(8) NULL," +
-                            "vehicle_health INT(8) NULL," +
-                            "vehicle_headlights_on TINYINT(1) NULL," +
-                            "vehicle_taillights_on TINYINT(1) NULL," +
-                            "vehicle_sirens_on TINYINT(1) NULL," +
-                            "vehicle_speed INT(8) NULL," +
-                            "vehicle_has_battery TINYINT(1) NULL," +
-                            "vehicle_battery_charge INT(8) NULL," +
-                            "vehicle_exploded TINYINT(1) NULL," +
-                            "vehicle_locked TINYINT(1) NULL," +                            
-                            "position VARCHAR(32) NULL," +
-                            "rotation FLOAT(7,4) NULL," +
-                            "is_dead TINYINT(1) NULL," +
-                            "last_dead_position VARCHAR(32) NULL," +
-                            "skin_color VARCHAR(32) NULL," +
-                            "hair INT(8) NULL," +
-                            "face INT(8) NULL," +
-                            "beard INT(8) NULL," +
-                            "hat INT(8) NULL," +
-                            "glasses INT(8) NULL," +
-                            "mask INT(8) NULL," +
-                            "is_bleeding TINYINT(1) NULL," +
-                            "is_broken TINYINT(1) NULL," +
-                            "health INT(8) NULL," +
-                            "stamina INT(8) NULL," +
-                            "hunger INT(8) NULL," +
-                            "thirst INT(8) NULL," +
-                            "infection INT(8) NULL," +
-                            "experience INT(8) NULL," +
-                            "reputation INT(8) NULL," +
-                            "skill_agriculture INT(8) NULL," +
-                            "skill_cardio INT(8) NULL," +
-                            "skill_cooking INT(8) NULL," +
-                            "skill_crafting INT(8) NULL," +
-                            "skill_dexerity INT(8) NULL," +
-                            "skill_diving INT(8) NULL," +
-                            "skill_engineer INT(8) NULL," +
-                            "skill_exercise INT(8) NULL," +
-                            "skill_fishing INT(8) NULL," +
-                            "skill_healing INT(8) NULL," +
-                            "skill_immunity INT(8) NULL," +
-                            "skill_mechanic INT(8) NULL," +
-                            "skill_outdoors INT(8) NULL," +
-                            "skill_overkill INT(8) NULL," +
-                            "skill_parkour INT(8) NULL," +
-                            "skill_sharpshooter INT(8) NULL," +
-                            "skill_sneakybeaky INT(8) NULL," +
-                            "skill_strength INT(8) NULL," +
-                            "skill_survival INT(8) NULL," +
-                            "skill_toughness INT(8) NULL," +
-                            "skill_vitality INT(8) NULL," +
-                            "skill_warmblooded INT(8) NULL," +
-                            "is_hidden TINYINT(1) NULL," +
-                            "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
-                            "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                            "last_disconnect TIMESTAMP NULL," +
-                            "PRIMARY KEY(CSteamID)) ;";
+                    "(CSteamID VARCHAR(32) NOT NULL," +
+                    "character_name VARCHAR(100) NULL," +
+                    "display_name VARCHAR(100) NULL," +
+                    "steam_group_id VARCHAR(32) NULL," +
+                    "steam_avatar_medium VARCHAR(255) NULL," +
+                    "server_id VARCHAR(32) NULL," +
+                    "ip_address VARCHAR(255) NULL," +
+                    "ping DECIMAL(8,6) NULL," +
+                    "is_pro TINYINT(1) NULL," +
+                    "is_admin TINYINT(1) NULL," +
+                    "is_god TINYINT(1) NULL," +
+                    "is_vanished TINYINT(1) NULL," +
+                    "in_vehicle TINYINT(1) NULL," +
+                    "vehicle_is_driver TINYINT(1) NULL," +
+                    "vehicle_instance_id INT(8) NULL," +
+                    "vehicle_id INT(8) NULL," +
+                    "vehicle_fuel INT(8) NULL," +
+                    "vehicle_health INT(8) NULL," +
+                    "vehicle_headlights_on TINYINT(1) NULL," +
+                    "vehicle_taillights_on TINYINT(1) NULL," +
+                    "vehicle_sirens_on TINYINT(1) NULL," +
+                    "vehicle_speed INT(8) NULL," +
+                    "vehicle_has_battery TINYINT(1) NULL," +
+                    "vehicle_battery_charge INT(8) NULL," +
+                    "vehicle_exploded TINYINT(1) NULL," +
+                    "vehicle_locked TINYINT(1) NULL," +                            
+                    "position VARCHAR(32) NULL," +
+                    "rotation FLOAT(7,4) NULL," +
+                    "is_dead TINYINT(1) NULL," +
+                    "last_dead_position VARCHAR(32) NULL," +
+                    "skin_color VARCHAR(32) NULL," +
+                    "hair INT(8) NULL," +
+                    "face INT(8) NULL," +
+                    "beard INT(8) NULL," +
+                    "hat INT(8) NULL," +
+                    "glasses INT(8) NULL," +
+                    "mask INT(8) NULL," +
+                    "is_bleeding TINYINT(1) NULL," +
+                    "is_broken TINYINT(1) NULL," +
+                    "health INT(8) NULL," +
+                    "stamina INT(8) NULL," +
+                    "hunger INT(8) NULL," +
+                    "thirst INT(8) NULL," +
+                    "infection INT(8) NULL," +
+                    "experience INT(8) NULL," +
+                    "reputation INT(8) NULL," +
+                    "skill_agriculture INT(8) NULL," +
+                    "skill_cardio INT(8) NULL," +
+                    "skill_cooking INT(8) NULL," +
+                    "skill_crafting INT(8) NULL," +
+                    "skill_dexerity INT(8) NULL," +
+                    "skill_diving INT(8) NULL," +
+                    "skill_engineer INT(8) NULL," +
+                    "skill_exercise INT(8) NULL," +
+                    "skill_fishing INT(8) NULL," +
+                    "skill_healing INT(8) NULL," +
+                    "skill_immunity INT(8) NULL," +
+                    "skill_mechanic INT(8) NULL," +
+                    "skill_outdoors INT(8) NULL," +
+                    "skill_overkill INT(8) NULL," +
+                    "skill_parkour INT(8) NULL," +
+                    "skill_sharpshooter INT(8) NULL," +
+                    "skill_sneakybeaky INT(8) NULL," +
+                    "skill_strength INT(8) NULL," +
+                    "skill_survival INT(8) NULL," +
+                    "skill_toughness INT(8) NULL," +
+                    "skill_vitality INT(8) NULL," +
+                    "skill_warmblooded INT(8) NULL," +
+                    "is_hidden TINYINT(1) NULL," +
+                    "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
+                    "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                    "last_disconnect TIMESTAMP NULL," +
+                    "PRIMARY KEY(CSteamID));";
                     MySQLCommand.ExecuteNonQuery();
                 }
                 MySQLConnection.Close();
@@ -184,8 +185,9 @@ namespace NEXIS.Livemap
                     // table doesn't exist, create it
                     MySQLCommand.CommandText = "CREATE TABLE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat +
                     "(id INT(8) NOT NULL AUTO_INCREMENT," +
-                    "steamId VARCHAR(50) NULL," +
-                    "message VARCHAR(255) NULL," +
+                    "server_id VARCHAR(32) NULL," +
+                    "steam_id VARCHAR(50) NULL," +
+                    "message VARCHAR(100) NULL," +
                     "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(id));";
                     MySQLConnection.Open();
@@ -321,12 +323,13 @@ namespace NEXIS.Livemap
                 if (result == null)
                 {
                     // player does not exist, create it
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded) VALUES (" +
+                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,server_id,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded) VALUES (" +
                     "'" + player.CSteamID.ToString() + "'," +
                     "'" + player.CharacterName.ToString() + "'," +
                     "'" + player.DisplayName.ToString() + "'," +
                     "'" + player.SteamGroupID.ToString() + "'," +
                     "'" + player.SteamProfile.AvatarMedium.ToString() + "'," +
+                    "'" + Provider.serverID + "'," +
                     "'" + player.IP.ToString() + "'," +
                     "'" + player.Ping.ToString() + "'," +
                     Convert.ToInt32(player.IsPro) + "," +
@@ -387,6 +390,7 @@ namespace NEXIS.Livemap
                     "display_name = '" + player.DisplayName.ToString() + "'," +
                     "steam_group_id = '" + player.SteamGroupID.ToString() + "'," +
                     "steam_avatar_medium = '" + player.SteamProfile.AvatarMedium.ToString() + "'," +
+                    "server_id = '" + Provider.serverID + "'," +
                     "ip_address = '" + player.IP.ToString() + "'," +
                     "ping = '" + player.Ping.ToString() + "'," +
                     "is_pro = " + Convert.ToInt32(player.IsPro) + "," +
@@ -606,7 +610,11 @@ namespace NEXIS.Livemap
                     MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                     // update player experience
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat + " (steamId,message) VALUES ('" + player.CSteamID.ToString() + "','" + message + "')";
+                    //MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat + " (steam_id,message,server_id) VALUES ('" + player.CSteamID.ToString() + "','" + message + "','" + Provider.serverID + "')";
+                    MySQLCommand.CommandText = string.Format("INSERT INTO {0} (steam_id,message,server_id) VALUES ( @steam_id, @message, @server_id);", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat);
+                    MySQLCommand.Parameters.AddWithValue("@steam_id", player.CSteamID.ToString());
+                    MySQLCommand.Parameters.AddWithValue("@message", message);
+                    MySQLCommand.Parameters.AddWithValue("@server_id", Provider.serverID);
                     MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
