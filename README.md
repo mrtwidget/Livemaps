@@ -15,7 +15,7 @@
 2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
 **Filtering Results**
-Filtering is accomplished by specifying a table name with `filter`. A null `filter` returns all livemap table results.
+1. Table filtering is accomplished by specifying a table name `filter` within the GET request. By default, a null GET `filter` returns all livemap table results.
     - *Example*
         - *URI*: `?livemap=server_id&filter=livemap_data`
         - *Result*: Only `livemap_data` table results are returned
