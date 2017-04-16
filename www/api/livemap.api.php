@@ -66,10 +66,13 @@ class API {
         $livemap_data = $this->config["database"]["tables"]["livemap_data"];
         $livemap_chat = $this->config["database"]["tables"]["livemap_chat"];
 
+        // settings
+        $livemap_chat_activity_duration = $this->config["database"]["settings"]["livemap_chat_activity_duration"] ;
+
         // queries
         $livemap_server_query = "SELECT * FROM $livemap_server WHERE server_id = :server_id";
         $livemap_data_query = "SELECT * FROM $livemap_data WHERE last_refresh <> last_disconnect AND server_id = :server_id";
-        $livemap_chat_query = "SELECT * FROM $livemap_chat WHERE timestamp > DATE_SUB(NOW(), INTERVAL 5 MINUTE) AND server_id = :server_id";
+        $livemap_chat_query = "SELECT * FROM $livemap_chat WHERE timestamp > DATE_SUB(NOW(), INTERVAL $livemap_chat_activity_duration MINUTE) AND server_id = :server_id";
 
         // loop through each table
         foreach ($this->config["database"]["tables"] as $table) {

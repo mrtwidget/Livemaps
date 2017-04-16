@@ -1,5 +1,9 @@
 # Livemaps
 
+This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries for the [Steam](http://store.steampowered.com/) game [Unturned](http://store.steampowered.com/app/304930/). The Rocket Mod plugin collects server, player, and chat data recurrently and then saves the data to the user-configured MySQL database. The API provides an AJAX interface for retrieving the latest JSON-encoded server data. Livemap API responses are used to update the WebUI maps.
+
+*The WebUI portion of this plugin is optional*, and is intended only as a default theme for this project. The API may be used independently to support fully custom livemap themes and features.
+
 **How to Install:**
 
 ***Plugin***
@@ -10,17 +14,18 @@
     - *Example*: `<Permission Cooldown="0">livemap</Permission>`
 5. Restart Server
 
+***WebUI***
+1. Copy folder contents from `www` to web server.
+
 ***API***
 1. Edit `www/api/config.api.php` and configure MySQL database connection settings
 2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
-**Filtering Results**
-1. Table filtering is accomplished by specifying a table name `filter` within the GET request. By default, a null GET `filter` returns all livemap table results.
-    - *Example*
-        - *URI*: `?livemap=server_id&filter=livemap_data`
-        - *Result*: Only `livemap_data` table results are returned
-
-***Web UI***
+    **Filtering Results**
+    1. Table filtering is accomplished by specifying a table name `filter` within the GET request. By default, a null GET `filter` returns all livemap table results.
+        - *Example*
+            - *URI*: `?livemap=server_id&filter=livemap_data`
+            - *Result*: Only `livemap_data` table results are returned
 
 ---
 
