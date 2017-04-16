@@ -20,14 +20,14 @@ namespace NEXIS.Livemap
 
         public void CheckSchema()
         {
-            /* `livemap_servers` table */
+            /* `livemap_server` table */
             try
             {
                 MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if the table exists
-                MySQLCommand.CommandText = "SHOW TABLES LIKE '" + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServers + "'";
+                MySQLCommand.CommandText = "SHOW TABLES LIKE '" + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + "'";
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
@@ -36,7 +36,7 @@ namespace NEXIS.Livemap
                 if (result == null)
                 {
                     // table doesn't exist, create it
-                    MySQLCommand.CommandText = "CREATE TABLE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServers +
+                    MySQLCommand.CommandText = "CREATE TABLE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer +
                     "(server_id VARCHAR(32) NOT NULL," +
                     "server_name VARCHAR(50) NULL," +
                     "app_version VARCHAR(32) NULL," +
@@ -237,7 +237,7 @@ namespace NEXIS.Livemap
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if server exists in table
-                MySQLCommand.CommandText = "SELECT * FROM " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServers + " WHERE server_id = '" + Provider.serverID + "'";
+                MySQLCommand.CommandText = "SELECT * FROM " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " WHERE server_id = '" + Provider.serverID + "'";
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
@@ -246,7 +246,7 @@ namespace NEXIS.Livemap
                 if (result == null)
                 {
                     // server does not exist, create it
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServers + " (server_id,server_name,app_version,map,online_players,max_players,is_pvp,is_gold,is_pro,has_cheats,hide_admins,cycle_time,cycle_length,full_moon,uptime,packets_received,packets_sent,port,mode) VALUES (" +
+                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " (server_id,server_name,app_version,map,online_players,max_players,is_pvp,is_gold,is_pro,has_cheats,hide_admins,cycle_time,cycle_length,full_moon,uptime,packets_received,packets_sent,port,mode) VALUES (" +
                         "'" + Provider.serverID + "'," +
                         "'" + Provider.serverName + "'," +
                         "'" + Provider.APP_VERSION + "'," +
@@ -274,7 +274,7 @@ namespace NEXIS.Livemap
                 else
                 {
                     // update server info
-                    MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServers + " SET " +
+                    MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " SET " +
                     "server_name = '" + Provider.serverName + "'," +
                     "app_version = '" + Provider.APP_VERSION + "'," +
                     "map = '" + Provider.map + "'," +

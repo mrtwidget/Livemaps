@@ -16,7 +16,7 @@ namespace NEXIS.Livemap
         public string DatabasePass;
         public string DatabaseName;
         public int DatabasePort;
-        public string DatabaseTableLivemapServers;
+        public string DatabaseTableLivemapServer;
         public string DatabaseTableLivemapData;
         public string DatabaseTableLivemapChat;
 
@@ -36,7 +36,7 @@ namespace NEXIS.Livemap
             DatabasePass = "password";
             DatabaseName = "unturned";
             DatabasePort = 3306;
-            DatabaseTableLivemapServers = "livemap_servers";
+            DatabaseTableLivemapServer = "livemap_server";
             DatabaseTableLivemapData = "livemap_data";
             DatabaseTableLivemapChat = "livemap_chat";
         }
