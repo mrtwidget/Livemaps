@@ -8,18 +8,18 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 ***Plugin***
 1. Compile project
-2. Copy `Livemap.dll` to Unturned rocket plugin directory
-3. Start/stop server to generate config and configure MySQL database
-4. Add Rocket permission for `/livemap` command to `Permissions.config.xml`
+2. Copy `Livemap.dll` to the Rocket Mod plugin directory
+3. Start/stop server to generate `Livemap.configuration.xml` and configure MySQL database settings
+4. Add Rocket Mod permission for /livemap command to `Permissions.config.xml`
     - *Example*: `<Permission Cooldown="0">livemap</Permission>`
-5. Restart Server
+5. Start Server
 
 ***WebUI***
 1. Copy folder contents of `www` to your web server.
 
 ***API***
-1. Edit `www/api/config.api.php` and configure MySQL database connection settings
-    - *For standalone API usage only copy the contents of the `api` folder to your web server*
+1. Edit `www/api/config.api.php` and configure MySQL database settings
+    - *For standalone API usage, copy only the the `api` folder to your web server*
 2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
     **Filtering**
@@ -30,7 +30,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
             - *URI*: `?livemap=server_id&filter=livemap_data`
             - *Result*: Only `livemap_data` table results are returned
 
-    - Player filtering is accomplished by specifying a player "Steam64ID" (*i.e.* `76560000000000000`) `filter` within the GET request.
+    - Player filtering is accomplished by specifying a player "Steam64ID" (*i.e.* `7656#############`) `filter` within the GET request.
         - *Example*
             - *URI*: `?livemap=server_id&filter=7656#############`
             - *Result*: Only specified player data is returned
@@ -103,7 +103,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
     - Hat
     - Glasses
     - Mask
-    
+
 - Livemap Hidden Status
 
 ---
@@ -119,3 +119,5 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 - Nexis Realms [nexisrealms.com](http://www.nexisrealms.com)
 
 ---
+
+*Nexis <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*

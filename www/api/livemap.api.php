@@ -53,7 +53,7 @@ class API {
     }
 
     /**
-     * Process Request
+     * Process API Request
      *
      * This function queries the database by filtering results based on the `server_id` identifier passed by `$_GET[livemap]`,
      * and returns a combined array of all associated livemap tables [`livemap_server`,`livemap_data`,`livemap_chat`]
@@ -61,36 +61,44 @@ class API {
      * @return array $result    Returned array of table result queries combining `livemap_server`, `livemap_data`, and `livemap_chat`
      */
     public function process_request($server_id, $filter = null) {
-        // tables
+        // database tables
         $livemap_server = $this->config["database"]["tables"]["livemap_server"];
         $livemap_data = $this->config["database"]["tables"]["livemap_data"];
         $livemap_chat = $this->config["database"]["tables"]["livemap_chat"];
 
-        // settings
+        // database settings
         $livemap_chat_activity_duration = $this->config["database"]["settings"]["livemap_chat_activity_duration"] ;
 
-        // queries
-        $livemap_server_query = "SELECT * FROM $livemap_server WHERE server_id = :server_id";
+        // database queries
+        $livemap_server_query = "SELECT * FROM $livemap_server WHERE last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND) AND server_id = :server_id";
         $livemap_data_query = "SELECT * FROM $livemap_data WHERE (last_refresh > last_disconnect OR last_disconnect IS NULL) AND last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND) AND server_id = :server_id";
         $livemap_chat_query = "SELECT * FROM $livemap_chat WHERE timestamp > DATE_SUB(NOW(), INTERVAL $livemap_chat_activity_duration MINUTE) AND server_id = :server_id";
 
-        // loop through each table
-        foreach ($this->config["database"]["tables"] as $table) {
+        // loop through each table and collect data matching current `server_id`
+        foreach ($this->config["database"]["tables"] as $table) {            
             // filter results if $filter is set
             if ($filter == null || $filter == $table) {
+                // input sanitization
                 $query = $this->mysql->prepare(${$table . "_query"});
                 $query->bindValue(':server_id', $server_id, PDO::PARAM_STR);
                 $query->execute();
-                $result[$table] = $query->fetchAll(PDO::FETCH_ASSOC);
+                
+                // if result is empty return null
+                if ($query->rowCount() > 0) {
+                    $result[$table] = $query->fetchAll(PDO::FETCH_ASSOC);
+                } else {
+                    $result[$table] = null;
+                }
             }
         }
-        return $result;
+        // if `livemap_server` is empty return null
+        return isset($result[$livemap_server]) ? $result : null;
     }
 }
 
 /**
- * Initiate API
- * this block enforces a `server_id` be passed to initiate the API or else
+ * Initiate API.
+ * This block enforces a `server_id` be passed to initiate the API or else
  * it will return a http response code of 400 (Bad Request)
  */
 if (isset($_GET["livemap"])) {
