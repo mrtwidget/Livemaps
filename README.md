@@ -6,14 +6,15 @@
 1. Compile project
 2. Copy `Livemap.dll` to Unturned rocket plugin directory
 3. Start/stop server to generate config and configure MySQL database
-4. Add Rocket permission for `/livemap` command to Permissions.config.xml
+4. Add Rocket permission for `/livemap` command to `Permissions.config.xml`
+    - *Example*: `<Permission Cooldown="0">livemap</Permission>`
 5. Restart Server
 
 ***API***
 1. Edit `www/api/config.api.php` and configure MySQL database connection settings
-2. Send GET request to `www/api/livemap.api.php?livemap=server_id` returns JSON-encoded response
+2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
-- *Filtering Results*
+**Filtering Results**
     Filtering is accomplished by specifying a table name with `filter`. A null `filter` returns all livemap table results.
         - *Example*
             - *URI*: `?livemap=server_id&filter=livemap_data`
