@@ -31,7 +31,6 @@ namespace NEXIS.Livemap
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
-                MySQLConnection.Close();
 
                 if (result == null)
                 {
@@ -58,7 +57,6 @@ namespace NEXIS.Livemap
                     "mode VARCHAR(32) NULL," +
                     "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(server_id));";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }
@@ -178,7 +176,6 @@ namespace NEXIS.Livemap
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
-                MySQLConnection.Close();
 
                 if (result == null)
                 {
@@ -190,7 +187,6 @@ namespace NEXIS.Livemap
                     "message VARCHAR(100) NULL," +
                     "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(id));";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }
@@ -241,7 +237,6 @@ namespace NEXIS.Livemap
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
-                MySQLConnection.Close();
 
                 if (result == null)
                 {
@@ -267,7 +262,6 @@ namespace NEXIS.Livemap
                         Provider.port + "," +
                         "'" + Provider.mode.ToString() + "'" +
                     ")";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }
@@ -294,7 +288,6 @@ namespace NEXIS.Livemap
                     "port = " + Provider.port + "," +
                     "mode = '" + Provider.mode.ToString() + "' " +
                     "WHERE server_id = '" + Provider.serverID + "'";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }
@@ -318,7 +311,6 @@ namespace NEXIS.Livemap
                 MySQLConnection.Open();
 
                 object result = MySQLCommand.ExecuteScalar();
-                MySQLConnection.Close();
 
                 if (result == null)
                 {
@@ -378,7 +370,6 @@ namespace NEXIS.Livemap
                     player.GetSkillLevel(UnturnedSkill.Vitality) + "," + 
                     player.GetSkillLevel(UnturnedSkill.Warmblooded) + 
                     ")";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }
@@ -449,7 +440,6 @@ namespace NEXIS.Livemap
                     "skill_vitality = " + player.GetSkillLevel(UnturnedSkill.Vitality) + "," +
                     "skill_warmblooded = " + player.GetSkillLevel(UnturnedSkill.Warmblooded) + " " +
                     "WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
                 }

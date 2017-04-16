@@ -71,7 +71,7 @@ class API {
 
         // queries
         $livemap_server_query = "SELECT * FROM $livemap_server WHERE server_id = :server_id";
-        $livemap_data_query = "SELECT * FROM $livemap_data WHERE last_refresh <> last_disconnect AND server_id = :server_id";
+        $livemap_data_query = "SELECT * FROM $livemap_data WHERE (last_refresh > last_disconnect OR last_disconnect IS NULL) AND last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND) AND server_id = :server_id";
         $livemap_chat_query = "SELECT * FROM $livemap_chat WHERE timestamp > DATE_SUB(NOW(), INTERVAL $livemap_chat_activity_duration MINUTE) AND server_id = :server_id";
 
         // loop through each table

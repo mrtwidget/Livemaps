@@ -15,21 +15,48 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 5. Restart Server
 
 ***WebUI***
-1. Copy folder contents from `www` to web server.
+1. Copy folder contents of `www` to your web server.
 
 ***API***
 1. Edit `www/api/config.api.php` and configure MySQL database connection settings
+    - *For standalone API usage only copy the contents of the `api` folder to your web server*
 2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
-    **Filtering Results**
-    1. Table filtering is accomplished by specifying a table name `filter` within the GET request. By default, a null GET `filter` returns all livemap table results.
+    **Filtering**
+    - By default, a null GET `filter` returns all livemap table results.
+
+    - Table filtering is accomplished by specifying a table name `filter` within the GET request.
         - *Example*
             - *URI*: `?livemap=server_id&filter=livemap_data`
             - *Result*: Only `livemap_data` table results are returned
 
+    - Player filtering is accomplished by specifying a player "Steam64ID" (*i.e.* `76560000000000000`) `filter` within the GET request.
+        - *Example*
+            - *URI*: `?livemap=server_id&filter=7656#############`
+            - *Result*: Only specified player data is returned
+
 ---
 
-**Features:**
+**Request Data:**
+- Server ID
+- Server Name
+- App Version 
+- Map Name
+- Online Player Count
+- Max Player Count
+- PvP
+- Gold / Pro
+- Has Cheats
+- Hide Admins
+- Cycle Time
+- Cycle Length
+- Full Moon
+- Up-time
+- Packets Received
+- Packets Sent
+- Port
+- Mode
+
 - Player Position
 - Player Rotation
 - Player Stats
@@ -76,6 +103,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
     - Hat
     - Glasses
     - Mask
+    
 - Livemap Hidden Status
 
 ---
