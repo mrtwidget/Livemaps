@@ -13,12 +13,24 @@ h2 small {
     color: white;
     font-size: 14px;
 }
+p { color: white }
+small { color: #e0bdbd }
+
+a {color: #9ad0ff; font-weight: bold; }
+a:hover {color: whitesmoke; text-decoration: none }
+
+.author {
+    position: fixed;
+    bottom: 1em; right: 1em;
+    color: lightslategray;
+    z-index: 999;
+}
 
 /* livemap default */
 .livemap, 
 .livemap-container,
 .livemap-badge-container {
-    padding: 1em; margin: 0 0 0.5em 0;
+    padding: 0.5em; margin: 0 0 0.5em 0;
     border-radius: 5px;
     background: rgba(0,0,0,0.4);
     color: white;
@@ -26,10 +38,9 @@ h2 small {
 }
 
     /* player badges */
-    .livemap-badge-container {
-        padding: 0.5em;
-        max-height: 46px;
-    }
+    .livemap-badge-container { max-height: 46px }
+    .livemap-badge-container:hover { outline: 1px solid #aaa; cursor: pointer }
+
         /* player avatar & reputation icons */
         .livemap-badge-container img {
             width: 30px; height: auto;
@@ -42,8 +53,9 @@ h2 small {
         img.livemap-permission { width: 16px }
         img.livemap-skillset { width: 16px }
 
-        /* player name */
-        .player-name {
+        /* player name & reputation */
+        .player-name,
+        .player-reputation  {
             margin: 0;
             font-size: 12px;
             font-weight: bold;
@@ -52,11 +64,12 @@ h2 small {
             .player-name.admin { color: cyan }
             .player-name.gold { color: gold }
 
-        /* player reputation */
-        .player-reputation {
-            margin: 0;
-            font-size: 11px;
-            font-weight: bold;
-        }
-            .player-reputation neutral { color: white }
-            .player-reputation villain { color: darkred }
+            .player-reputation.neutral { color: white }
+            .player-reputation.bandit { color: yellow }
+            .player-reputation.constable { color: yellowgreen }
+            .player-reputation.deputy { color: green }
+            .player-reputation.gangster { color: lightcoral }
+            .player-reputation.outlaw { color: orangered }
+            .player-reputation.paragon { color: greenyellow }
+            .player-reputation.thug { color: crimson }
+            .player-reputation.villain { color: darkred }
