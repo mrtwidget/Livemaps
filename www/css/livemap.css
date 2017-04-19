@@ -1,0 +1,62 @@
+/**
+ * author: Nexis <mrtwidget@gmail.com>
+ */
+
+/* style */
+html, body { height: 100%; }
+body { 
+    background: url("../images/bg.jpg") center no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+h2 small { 
+    color: white;
+    font-size: 14px;
+}
+
+/* livemap default */
+.livemap, 
+.livemap-container,
+.livemap-badge-container {
+    padding: 1em; margin: 0 0 0.5em 0;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.4);
+    color: white;
+    text-align: center;
+}
+
+    /* player badges */
+    .livemap-badge-container {
+        padding: 0.5em;
+        max-height: 46px;
+    }
+        /* player avatar & reputation icons */
+        .livemap-badge-container img {
+            width: 30px; height: auto;
+            margin-right: 4px;
+            float: left;
+        } 
+        .livemap-badge-container img:last-child { margin-right: 0; }
+        
+        /* permission & skillset icons */
+        img.livemap-permission { width: 16px }
+        img.livemap-skillset { width: 16px }
+
+        /* player name */
+        .player-name {
+            margin: 0;
+            font-size: 12px;
+            font-weight: bold;
+        }
+            .player-name.normal { color: white }
+            .player-name.admin { color: cyan }
+            .player-name.gold { color: gold }
+
+        /* player reputation */
+        .player-reputation {
+            margin: 0;
+            font-size: 11px;
+            font-weight: bold;
+        }
+            .player-reputation neutral { color: white }
+            .player-reputation villain { color: darkred }

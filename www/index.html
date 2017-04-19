@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Livemap WebUI</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/livemap.css" rel="stylesheet">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="js/livemap.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <h2>Livemaps <small>v0.2 development</small></h2>
+
+            <!-- .livemap -->
+            <div class="livemap" data-server-id="test">
+                <div class="row">
+                    <div class="col-md-9 col-xs-12">
+                        <!-- map image -->
+                        <img class="img-responsive" src="images/maps/Hawaii/Map.png" alt="">
+                        <!-- player nodes -->
+                        <div class="livemap-nodes"></div>
+                        <!-- map overlay -->
+                        <div class="livemap-hud">
+                            <div class="livemap-hud-map"></div>
+                            <div class="livemap-hud-online"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 hidden-xs" style="padding-left:0">
+                        <div class="livemap-badges">
+                            <div class="livemap-container" id="livemap-online-players"><img src="images/icons/players-online.png" alt=""> Players: 3/24</div>
+                            
+ 
+                            <!-- player badge container -->
+                            <div class="livemap-badge-container">  
+                                <!-- player badge -->
+                                <div class="livemap-badge-player">
+                                    <div class="row">
+                                        <div class="col-md-3 col-lg-4">
+                                            <img src="images/avatars/default.jpg" alt="avatar">
+                                            <img class="hidden-md" src="images/icons/reputations/neutral.png" alt="reputation-icon">
+                                        </div>
+                                        <div class="col-md-7 col-lg-6">
+                                            <div class="player-name admin">Nexis</div>
+                                            <div class="player-reputation neutral">Neutral [0]</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <img class="livemap-permission" src="images/icons/admin.png" alt="permissions">
+                                            <img class="livemap-skillset hidden" src="images/icons/skillsets/thief.png" alt="skillset">
+                                        </div>
+                                    </div>
+                                </div><!-- /player badge -->
+                            </div><!-- /player badge container -->
+                            
+                            <!-- player badge container -->
+                            <div class="livemap-badge-container">  
+                                <!-- player badge -->
+                                <div class="livemap-badge-player">
+                                    <div class="row">
+                                        <div class="col-md-3 col-lg-4">
+                                            <img src="images/avatars/unknown.png" alt="avatar">
+                                            <img class="hidden-md" src="images/icons/reputations/neutral.png" alt="reputation-icon">
+                                        </div>
+                                        <div class="col-md-7 col-lg-6">
+                                            <div class="player-name gold">KendalFire</div>
+                                            <div class="player-reputation neutral">Neutral [0]</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <img class="livemap-permission" src="images/icons/gold.png" alt="permissions">
+                                            <img class="livemap-skillset" src="images/icons/skillsets/thief.png" alt="skillset">
+                                        </div>
+                                    </div>
+                                </div><!-- /player badge -->
+                            </div><!-- /player badge container -->
+
+                            <!-- player badge container -->
+                            <div class="livemap-badge-container">  
+                                <!-- player badge -->
+                                <div class="livemap-badge-player">
+                                    <div class="row">
+                                        <div class="col-md-3 col-lg-4">
+                                            <img src="images/avatars/unknown.png" alt="avatar">
+                                            <img class="hidden-md" src="images/icons/reputations/villain.png" alt="reputation-icon">
+                                        </div>
+                                        <div class="col-md-7 col-lg-6">
+                                            <div class="player-name normal">Bob the bad guy</div>
+                                            <div class="player-reputation villain">Villain [0]</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <img class="livemap-permission hidden" src="images/icons/gold.png" alt="permissions">
+                                            <img class="livemap-skillset hidden" src="images/icons/skillsets/thief.png" alt="skillset">
+                                        </div>
+                                    </div>
+                                </div><!-- /player badge -->
+                            </div><!-- /player badge container -->
+
+
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.livemap -->
+        </div>
+    </body>
+</html>
