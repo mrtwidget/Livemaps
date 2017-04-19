@@ -19,7 +19,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 ***API***
 1. Edit `www/api/config.api.php` and configure MySQL database settings
-    - *For standalone API usage, copy only the the `api` folder to your web server*
+    - *For standalone API usage, copy only the the `www/api` folder to your web server*
 2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
     
     **Filtering**
@@ -37,7 +37,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 ---
 
-**Request Data:**
+**API Returnable Fields:**
 - Server ID
 - Server Name
 - App Version 
@@ -115,9 +115,9 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 ---
 
 **Resources:**
-- Trello: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
-- Nexis Realms [nexisrealms.com](http://www.nexisrealms.com)
+- Trello my development process: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
+- Nexis Realms Unturned Server: [nexisrealms.com](http://www.nexisrealms.com)
 
 ---
 
-*Nexis <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*
+*creator: Nexis (steam:iamtwidget) <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*
