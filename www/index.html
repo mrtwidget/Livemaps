@@ -7,8 +7,12 @@
         <link rel="icon" sizes="192x192" href="images/favicon.png">
 
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah" rel="stylesheet">
         <link href="css/livemap.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="js/velocity.min.js"></script>
+        <script src="js/velocity.ui.js"></script>
         <script src="js/livemap.js"></script>
     </head>
 
@@ -22,14 +26,27 @@
             <div class="livemap" data-server-id="test">
                 <div class="row">
                     <div class="col-md-9 col-xs-12">
-                        <!-- map image -->
-                        <img class="img-responsive" src="images/maps/Hawaii/Map.png" alt="">
-                        <!-- player nodes -->
-                        <div class="livemap-nodes"></div>
-                        <!-- map overlay -->
-                        <div class="livemap-hud">
-                            <div class="livemap-hud-map"></div>
-                            <div class="livemap-hud-online"></div>
+                        <div class="livemap-map">
+                            <!-- loading screen -->
+                            <div class="livemap-loading">
+                                <div class="livemap-loading-container">
+                                    <img src="images/loading.gif" alt="">
+                                    <p>loading</p>
+                                </div>
+                            </div>
+                            <div class="livemap-loading-sm hidden">
+                                <img src="images/loading.gif" alt="">
+                                <p>loading</p>
+                            </div>
+                            <!-- map image -->
+                            <img class="img-responsive" src="images/maps/Hawaii/Map.jpg" alt="">
+                            <!-- player nodes -->
+                            <div class="livemap-nodes"></div>
+                            <!-- map overlay -->
+                            <div class="livemap-hud">
+                                <div class="livemap-hud-map"></div>
+                                <div class="livemap-hud-online"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3 hidden-xs" style="padding-left:0">
