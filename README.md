@@ -27,6 +27,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 1. Edit `www/api/config.api.php` and configure your MySQL database settings
     - *Note: For standalone API usage, copy only the `www/api` folder to your web server*
 2. Send a GET request to the API to retrieve a JSON-encoded response:
+
     **Sending Requests**
     - Here is a JavaScript example of how to send an API request using AJAX:
     ```javascript
