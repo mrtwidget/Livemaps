@@ -66,6 +66,8 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
             - *URI*: `http://www.example.com/api/livemap.api.php?livemap=server_id&filter=7656#############`
             - *Result*: Only specified player data is returned
 
+    3. Append the returned data to your website
+
 ---
 
 **API Returnable Fields:**
