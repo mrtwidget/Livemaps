@@ -50,7 +50,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
     
     - You may also view results in a browser:
         - *Example*
-            - *URI*: Navigate to `http://www.example.com/api/livemap.api.php?livemap=server_id`; replacing `server_id` with your own server instance name
+            - Navigate to `http://www.example.com/api/livemap.api.php?livemap=server_id`; replacing `server_id` with your own server instance name
             - *Result*: The results of the request will be displayed directly on the page in JSON format
 
     **Filtering**
