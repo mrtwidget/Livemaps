@@ -50,7 +50,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
     
     - You may also view results in a browser:
         - *Example*
-            - *URI*: Navigate to `http://www.example.com/api/?livemap=server_id`; replacing `server_id` with your own server instance name
+            - *URI*: Navigate to `http://www.example.com/api/livemap.api.php?livemap=server_id`; replacing `server_id` with your own server instance name
             - *Result*: The results of the request will be displayed directly on the page in JSON format
 
     **Filtering**
@@ -58,12 +58,12 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
     - Table filtering is accomplished by passing a specific MySQL table name to the `filter` parameter within an API GET request:
         - *Example*
-            - *URI*: `http://www.example.com/api/?livemap=server_id&filter=livemap_data`
+            - *URI*: `http://www.example.com/api/livemap.api.php?livemap=server_id&filter=livemap_data`
             - *Result*: Only `livemap_data` table results are returned
 
     - Player filtering is accomplished by passing a specific player "Steam64ID" (*i.e.* `7656#############`) to the `filter` parameter within an API GET request:
         - *Example*
-            - *URI*: `http://www.example.com/api/?livemap=server_id&filter=7656#############`
+            - *URI*: `http://www.example.com/api/livemap.api.php?livemap=server_id&filter=7656#############`
             - *Result*: Only specified player data is returned
 
 ---
