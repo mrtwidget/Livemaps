@@ -1,6 +1,6 @@
 # Livemaps
 
-This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries for the [Steam](http://store.steampowered.com/) game [Unturned](http://store.steampowered.com/app/304930/). The Rocket Mod plugin collects server, player, and chat data recurrently and then saves the data to the user-configured MySQL database. The API provides an AJAX interface for retrieving the latest JSON-encoded server data. Livemap API responses are used to update the WebUI maps.
+This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries for the [Steam](http://store.steampowered.com/) game [Unturned](http://store.steampowered.com/app/304930/). The Rocket Mod plugin collects server, player, and chat data recurrently and then saves the retrieved data to a user-configured MySQL database. The API provides an AJAX interface for retrieving the latest JSON-encoded server data. Livemap API responses are then used to update the WebUI maps.
 
 *The WebUI portion of this plugin is optional*, and is intended only as a default theme for this project. The API may be used independently to support fully custom livemap themes and features.
 
@@ -11,33 +11,58 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 **How to Install:**
 
-***Plugin***
-1. Compile project
-2. Copy `Livemap.dll` to the Rocket Mod plugin directory
-3. Start/stop server to generate `Livemap.configuration.xml` and configure MySQL database settings
-4. Add Rocket Mod permission for /livemap command to `Permissions.config.xml`
+***Livemap Rocket Plugin***
+1. Compile this project
+2. Copy the compiled `Livemap.dll` to your Rocket Mod plugin directory
+3. Start/stop your server to generate `Livemap.configuration.xml`
+4. Edit `Livemap.configuration.xml` and configure MySQL database settings
+5. Add a Rocket Mod permission for the /livemap command by adding it to your `Permissions.config.xml`
     - *Example*: `<Permission Cooldown="0">livemap</Permission>`
-5. Start Server
+6. Start Unturned Server
 
 ***WebUI***
-1. Copy folder contents of `www` to your web server.
+1. Copy the complete contents of the `www` folder to your web server.
 
 ***API***
-1. Edit `www/api/config.api.php` and configure MySQL database settings
-    - *For standalone API usage, copy only the the `www/api` folder to your web server*
-2. Send GET request to `www/api/livemap.api.php?livemap=server_id` for JSON-encoded response
+1. Edit `www/api/config.api.php` and configure your MySQL database settings
+    - *Note: For standalone API usage, copy only the `www/api` folder to your web server*
+2. Send a GET request to the API to retrieve a JSON-encoded response:
+    **Sending Requests**
+    - Here is a JavaScript example of how to send an API request using AJAX:
+    ```javascript
+        $.ajax({
+            dataType: "json",
+            type: "GET",
+            url: "api/livemap.api.php",
+            data: {
+                livemap: server_id,
+                filter: null
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    ```
     
-    **Filtering**
-    - By default, a null GET `filter` returns all livemap table results.
-
-    - Table filtering is accomplished by specifying a table name `filter` within the GET request.
+    - You may also view results in a browser:
         - *Example*
-            - *URI*: `?livemap=server_id&filter=livemap_data`
+            - *URI*: Navigate to `http://www.example.com/api/?livemap=server_id`; replacing `server_id` with your own server instance name
+            - *Result*: The results of the request will be displayed directly on the page in JSON format
+
+    **Filtering**
+    - By default, a `filter` parameter is not required to successfully process an API GET request. When no `filter` parameter is passed all of the tables are processed and returned in the request. The tables include `livemap_server`, `livemap_data` and `livemap_chat`.
+
+    - Table filtering is accomplished by passing a specific MySQL table name to the `filter` parameter within an API GET request:
+        - *Example*
+            - *URI*: `http://www.example.com/api/?livemap=server_id&filter=livemap_data`
             - *Result*: Only `livemap_data` table results are returned
 
-    - Player filtering is accomplished by specifying a player "Steam64ID" (*i.e.* `7656#############`) `filter` within the GET request.
+    - Player filtering is accomplished by passing a specific player "Steam64ID" (*i.e.* `7656#############`) to the `filter` parameter within an API GET request:
         - *Example*
-            - *URI*: `?livemap=server_id&filter=7656#############`
+            - *URI*: `http://www.example.com/api/?livemap=server_id&filter=7656#############`
             - *Result*: Only specified player data is returned
 
 ---
@@ -113,16 +138,21 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 ---
 
+**Price:**
+- *Free*, and it always will be.
+
+---
+
 **Requirements:**
-- PHP 7.0.+
+- PHP 5.6.+
 - MySQL 5.6.+
 
 ---
 
 **Resources:**
 - Trello my development process: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
-- Nexis Realms Unturned Server: [nexisrealms.com](http://www.nexisrealms.com)
+- Nexis Realms Livemap Development Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
 
 ---
 
-*creator: Nexis (steam:iamtwidget) <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*
+*author: Nexis (steam:iamtwidget) <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*
