@@ -2,7 +2,7 @@
  * author: Nexis <mrtwidget@gmail.com>
  */
 
-/* style */
+/* elements */
 html, body { height: 100%; }
 body { 
     background: url("../images/bg.jpg") center no-repeat;
@@ -15,14 +15,16 @@ h2 small {
 }
 p { color: white }
 small { color: #e0bdbd }
-
+/* hyperlinks */
 a {color: #9ad0ff; font-weight: bold; }
 a:hover {color: whitesmoke; text-decoration: none }
 
+/* bottom right message */
 .author {
     position: fixed;
     bottom: 1em; right: 1em;
     color: lightslategray;
+    opacity: 0.8;
     z-index: 999;
 }
 
@@ -52,27 +54,51 @@ a:hover {color: whitesmoke; text-decoration: none }
         display: flex;
         align-items: center;
     }
-
+        /* small loading message */
         .livemap-loading-sm { 
             left: 1em; top: 1em;
             background: 0;
         }
-
+        /* vertical align element container */
         .livemap-loading-container {
             width: 100%;
         }
-
+        /* loading gif size */
         .livemap-loading img {
             width: 220px; height: auto;
         }
-
+        /* small loading gif size */
         .livemap-loading-sm img { width: 120px }
-
+        /* loading text */
         .livemap-loading p { 
             color: rgba(255,255,255,0.6);
             font-size: 75%;
             text-transform: uppercase;
         }
+
+    /* player nodes */
+    .livemap-nodes {
+        position: absolute;
+        width: 100%; height: 100%;
+        top: 0;
+    }
+
+    .livemap-node-container { 
+        position: absolute;
+        margin: 0 auto;
+        background-color: #cccc91;
+        outline: 1px solid #333;
+     }
+    .livemap-node-container:hover { outline: 1px solid #aaa; cursor: pointer }
+
+        /* player node face */
+        .livemap-node-container img {
+            /* width: 16px; height: auto; */
+        }
+
+
+
+
 
     /* player badges */
     .livemap-badge-container { max-height: 46px }
@@ -83,7 +109,8 @@ a:hover {color: whitesmoke; text-decoration: none }
             width: 30px; height: auto;
             margin-right: 4px;
             float: left;
-        } 
+        }
+        /* remove margin from last image element */
         .livemap-badge-container img:last-child { margin-right: 0; }
         
         /* permission & skillset icons */
@@ -96,6 +123,9 @@ a:hover {color: whitesmoke; text-decoration: none }
             margin: 0;
             font-size: 12px;
             font-weight: bold;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
             /* player name & reputation colors */
             .player-name.normal { color: white }
@@ -110,3 +140,31 @@ a:hover {color: whitesmoke; text-decoration: none }
             .player-reputation.paragon { color: greenyellow }
             .player-reputation.thug { color: crimson }
             .player-reputation.villain { color: darkred }
+
+
+    /* Livemap HUD */
+    .livemap-hud {
+        position: absolute;
+        width: 100%; height: 100%;
+        top: 0; z-index: 999;
+    }
+
+        .livemap-hud .livemap-hud-map {
+            position: absolute;
+            top: 1em; left: 1em;
+        }
+        
+    /* World Chat */
+    .livemap-chat {
+        position: absolute;
+        bottom: 1em; left: 1em;
+        text-align: left;
+        padding: 1em;
+    }
+
+        .livemap-chat img { width: 14px; height: auto }
+        .livemap-chat p { font-size: 10px; margin: 0 }
+
+
+/* Bootstrap */
+.media { margin-top:2px!important }

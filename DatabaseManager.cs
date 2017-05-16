@@ -12,12 +12,23 @@ namespace NEXIS.Livemap
 {
     public class DatabaseManager
     {
+        /**
+         * Construct Class
+         * 
+         * This function includes required database DLL and checks the schema
+         */
         public DatabaseManager()
         {
             new I18N.West.CP1250();
             CheckSchema();
         }
 
+        /**
+         * Check Schema / Create Database Tables
+         * 
+         * This function checks if the required database tables already exist in the database and creates
+         * them if they do not already exist.
+         */
         public void CheckSchema()
         {
             /* `livemap_server` table */
@@ -299,6 +310,12 @@ namespace NEXIS.Livemap
             }
         }
 
+        /**
+         * Refresh Player Data
+         * 
+         * This function collects aplayer's current stats and updates the database to reflect this change.
+         * @param UnturnedPlayer player The player that will be updated
+         */
         public void RefreshPlayer(UnturnedPlayer player)
         {
             try
