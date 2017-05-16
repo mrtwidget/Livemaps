@@ -108,7 +108,7 @@ function UpdatePlayerNodes(livemap_server,livemap_data) {
             },
             success: function(data) {
                 // process returned data
-                $(".livemap-nodes").append(data);
+                $(".livemap[data-server-id='" + val.server_id + "'] .livemap-nodes").append(data);
                 $(".livemap-nodes [data-steam-id='" + val.CSteamID + "']").velocity("transition.bounceDownIn", { stagger: 250 });
             },
             error: function(e) {
@@ -194,7 +194,7 @@ function CalculateVectorPosition(server_id,map,vector3) {
     var offset = 129;
 
     // store the targeted livemap element for safe keeping
-    var livemap = $(".livemap[data-server-id='" + server_id + "']");
+    var livemap = $(".livemap[data-server-id='" + server_id + "'] .livemap-nodes");
     
     // set the mapsize variable to the targeted map 
     var mapsize = eval(map.toLowerCase());
