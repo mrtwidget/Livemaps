@@ -17,11 +17,11 @@
                 <!-- map overlay -->
                 <div class="livemap-hud">
                     <div class="livemap-hud-map"><?php echo strtoupper($_GET["Map"]); ?></div>
-                    <div class="livemap-hud-online"></div>
+                    <div class="livemap-hud-online"><?php echo $_GET["PlayersOnline"]; ?></div>
                 </div>
             </div>
             <!-- world chat -->
-            <div class="livemap-chat"></div>            
+            <div class="livemap-chat mCustomScrollbar" data-mcs-theme="light"></div>            
         </div>
         <div class="col-lg-4 col-md-3 hidden-xs" style="padding-left:0">
             <div class="livemap-badges">

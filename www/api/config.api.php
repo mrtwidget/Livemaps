@@ -11,5 +11,5 @@ $config["database"]["tables"]["livemap_data"] = "livemap_data";
 $config["database"]["tables"]["livemap_chat"] = "livemap_chat";
 
 // database settings
-$config["database"]["settings"]["livemap_chat_activity_duration"] = 5; // 5mins
+$config["database"]["settings"]["livemap_chat_activity_duration"] = 15; // 5mins
 ?>

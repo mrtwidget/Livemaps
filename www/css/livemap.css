@@ -154,17 +154,30 @@ a:hover {color: whitesmoke; text-decoration: none }
             position: absolute;
             top: 1em; left: 1em;
         }
+
+        .livemap-hud .livemap-hud-online {
+            position: absolute;
+            top: 1em; right: 1em;
+        }
         
     /* World Chat */
     .livemap-chat {
         position: absolute;
         bottom: 1em; left: 1em;
         text-align: left;
-        padding: 1em;
+        padding: 0.5em;
+        max-height: 8em;
+        overflow: auto;
+        width: 60%;
+        z-index: 9999;
+        background: rgba(0,0,0,0.3);
+        border-radius: 4px;
+        margin-left: 1em;
     }
 
         .livemap-chat img { width: 14px; height: auto }
         .livemap-chat p { font-size: 10px; margin: 0 }
+            .livemap-chat .admin { color: cyan }
 
 
 /* Bootstrap */

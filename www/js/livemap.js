@@ -1,3 +1,17 @@
+/**
+ * Disable Specific Livemaps
+ * Use the following array to disable specific livemaps that you do not want to
+ * display on the page by entering their server instance names below
+ * NOTE: **lowercase only**
+ */
+var DisabledLivemaps = ['pei'];
+/* var DisabledLivemaps = ['wash', 'pei']; */
+
+/**
+ * Livemap Hidding Transitions
+ * These are custom Velocity.js transitions for when a player hides/unhides 
+ * from a livemap
+ */
 $.Velocity.RegisterUI("transition.livemapBadgeIn", {
     defaultDuration: 3000,
     calls: [
@@ -16,6 +30,10 @@ $.Velocity.RegisterUI("transition.livemapBadgeOut", {
     ]
 });
 
+/**
+ * This function queries the API for active server data. If any active servers
+ * are found, all relevant data is then queried and loaded to the page
+ */
 function init() {
     $.ajax({
         dataType: "json",
@@ -34,29 +52,49 @@ function init() {
     });
 }
 
+/**
+ * Load All Active Livemaps
+ * 
+ * This function queries the API for servers that have been updated in the
+ * past 30 seconds and returns a populated element that is added to the 
+ * .livemaps element found in index.html
+ * @param {obj} livemap_server 
+ */
 function LoadLivemaps(livemap_server) {
+    // loop through each server instance returned
     jQuery.each(livemap_server, function(i, val) {
-        $.ajax({
-            type: "GET",
-            url: "templates/layout.livemap.php",
-            data: {
-                // send player data
-                ServerID: val.server_id,
-                Map: val.map
-            },
-            success: function(data) {
-                // process returned data
-                $(".livemaps").append(data);
-                //$(".livemaps [data-server-id='" + server_id + "']")
-            },
-            error: function(e) {
-                console.log(e);
-            }
-        });
+        // if instance exists in livemapInstances, load the livemap
+        if (DisabledLivemaps.indexOf(val.server_id.toLowerCase()) == -1) {
+            // generate the map
+            $.ajax({
+                type: "GET",
+                url: "templates/layout.livemap.php",
+                data: {
+                    // send server data
+                    ServerID: val.server_id,
+                    Map: val.map,
+                    PlayersOnline: returnOnlinePlayerCount(val)
+                },
+                success: function(data) {
+                    // add generated map to the page
+                    $(".livemaps").append(data);
+                    RefreshLivemap(val.server_id.toLowerCase());
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        }
     })
 }
 
-
+/**
+ * Refresh Livemap
+ * 
+ * This function sends a request to the API and retrieves all server table data
+ * and then updates the livemap data
+ * @param {string} server_id 
+ */
 function RefreshLivemap(server_id) {
     $.ajax({
         dataType: "json",
@@ -79,11 +117,11 @@ function RefreshLivemap(server_id) {
     });
 }
 
-function getPlayerType(player) {
-    if (player.is_pro) {
-        return "gold";
-    } else if (player.is_admin) {
+function returnPlayerType(player) {
+    if (player.is_admin) {
         return "admin";
+    } else if (player.is_pro) {
+        return "gold";
     } else if (player.in_vehicle) {
         return "vehicle";
     } else {
@@ -93,6 +131,10 @@ function getPlayerType(player) {
 
 function UpdateOnlinePlayerCount(livemap_server) {
     $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-online-players").html("Players: " + livemap_server.online_players + "/" + livemap_server.max_players);
+}
+
+function returnOnlinePlayerCount(livemap_server) {
+    return livemap_server.online_players + "/" + livemap_server.max_players;
 }
 
 function UpdatePlayerNodes(livemap_server,livemap_data) {
@@ -129,7 +171,7 @@ function UpdatePlayerBadges(livemap_data) {
                 CharacterName: val.character_name,
                 Reputation: returnReputation(val.reputation),
                 Avatar: val.steam_avatar_medium,
-                BadgeColor: getPlayerType(val)
+                BadgeColor: returnPlayerType(val)
             },
             success: function(data) {
                 // process returned data
@@ -146,23 +188,14 @@ function UpdatePlayerBadges(livemap_data) {
 function UpdateWorldChat(livemap_chat, livemap_data) {
     // return chat data 
     jQuery.each(livemap_chat, function(i, val) {
-        $.ajax({
-            type: "GET",
-            url: "templates/chat.livemap.php",
-            data: {
-                // send chat data
-                CharacterName: val.character_name,
-                Avatar: val.steam_avatar_medium,
-                Message: val.message
-            },
-            success: function(data) {
-                // process returned data
-                $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
-            },
-            error: function(e) {
-                console.log(e);
-            }
-        });
+        var CharacterName = val.character_name;
+        var Avatar = val.steam_avatar_medium;
+        var Message = val.message;
+        var IsAdmin = val.is_admin;
+
+        // create new message
+        var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+        $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
     })
 }
 
@@ -256,17 +289,12 @@ function returnReputation(rep) {
     }
 }
 
-init();
-
 // show loading screen during ajax requests
 $(document).on({
     ajaxStart: function() { $(".livemap-loading").removeClass("hidden"); },
-    ajaxStop: function() { $(".livemap-loading").addClass("hidden"); }
+    ajaxStop: function() { $(".livemap-loading").addClass("hidden"); $(".livemap-chat").mCustomScrollbar(); }
 });
 
 $(document).ready(function() {
-    // initial livemap refresh
-    RefreshLivemap("pei");
-    RefreshLivemap("wash");
+    init();
 });
-
