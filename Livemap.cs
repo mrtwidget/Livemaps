@@ -73,9 +73,6 @@ namespace NEXIS.Livemap
         {
             if (this.State == PluginState.Loaded && Livemap.Instance.LastRefresh == null || (DateTime.Now - this.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.RefreshInterval)
             {
-                // foreach index
-                int i = 0;
-
                 // refresh server data
                 Livemap.Instance.Database.RefreshServer();
 
@@ -83,9 +80,8 @@ namespace NEXIS.Livemap
                 foreach (SteamPlayer player in Provider.clients)
                 {
                     // refresh player data
+                    if (player == null) { continue; }
                     Livemap.Instance.Database.RefreshPlayer(UnturnedPlayer.FromSteamPlayer(player));
-
-                    ++i; // increment index
                 }
 
                 // update refresh timestamp
