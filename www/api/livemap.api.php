@@ -53,7 +53,7 @@ class API {
      */
     public function connect_database($host, $username, $password, $database) {
         try {
-            $DSN = 'mysql:host=' . $host . ';dbname=' . $database;
+            $DSN = 'mysql:host=' . $host . ';dbname=' . $database . ';charset=utf8';
             $this->mysql = new PDO( $DSN, $username, $password );
             $this->mysql->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION ); 
         } catch(PDOException $ex) {
