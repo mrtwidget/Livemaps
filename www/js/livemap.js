@@ -4,8 +4,8 @@
  * display on the page by entering their server instance names below
  * NOTE: **lowercase only**
  */
-var DisabledLivemaps = ['pei'];
-/* var DisabledLivemaps = ['wash', 'pei']; */
+var DisabledLivemaps = [];
+/* var DisabledLivemaps = ['server1', 'pei']; */
 
 /**
  * Livemap Hidding Transitions
@@ -30,6 +30,15 @@ $.Velocity.RegisterUI("transition.livemapBadgeOut", {
     ]
 });
 
+/* Active Instances */
+var ActiveInstances = [];
+
+/* Refresh Interval */
+var RefreshInterval;
+
+/* Refresh Interval */
+var LastWorldChatID = 0;
+
 /**
  * This function queries the API for active server data. If any active servers
  * are found, all relevant data is then queried and loaded to the page
@@ -43,7 +52,6 @@ function init() {
             filter: "livemap_server"
         },
         success: function(data) {
-            // process returned data
             LoadLivemaps(data);
         },
         error: function(e) {
@@ -65,6 +73,9 @@ function LoadLivemaps(livemap_server) {
     jQuery.each(livemap_server, function(i, val) {
         // if instance exists in livemapInstances, load the livemap
         if (DisabledLivemaps.indexOf(val.server_id.toLowerCase()) == -1) {
+            // Add this server to the active instance array
+            ActiveInstances.push(val.server_id.toLowerCase());
+            
             // generate the map
             $.ajax({
                 type: "GET",
@@ -78,7 +89,7 @@ function LoadLivemaps(livemap_server) {
                 success: function(data) {
                     // add generated map to the page
                     $(".livemaps").append(data);
-                    RefreshLivemap(val.server_id.toLowerCase());
+                    RefreshLivemap(val.server_id);
                 },
                 error: function(e) {
                     console.log(e);
@@ -86,6 +97,12 @@ function LoadLivemaps(livemap_server) {
             });
         }
     })
+}
+
+function TriggerLivemapRefresh() {
+    for (var i = 0; i < ActiveInstances.length; i++) {
+        RefreshLivemap(ActiveInstances[i]);
+    }    
 }
 
 /**
@@ -105,27 +122,34 @@ function RefreshLivemap(server_id) {
             livemap: server_id
         },
         success: function(data) {
-            // process returned data
             UpdateOnlinePlayerCount(data.livemap_server[0]);
             UpdatePlayerBadges(data.livemap_data);
             UpdatePlayerNodes(data.livemap_server[0], data.livemap_data);
-            UpdateWorldChat(data.livemap_chat, data.livemap_data);
+            UpdateWorldChat(data.livemap_chat);
         },
         error: function(e) {
-            console.log(e);
+            console.log("ERROR: " + e.val);
         }
     });
 }
 
 function returnPlayerType(player) {
-    if (player.is_admin) {
+    if (player.is_admin == 1) {
         return "admin";
-    } else if (player.is_pro) {
+    } else if (player.is_pro == 1) {
         return "gold";
-    } else if (player.in_vehicle) {
+    } else if (player.in_vehicle == 1) {
         return "vehicle";
     } else {
         return "normal";
+    }
+}
+
+function returnPlayerBadgeTypeIcon(player) {
+    if (player.is_admin == 1) {
+        return "admin";
+    } else if (player.is_pro == 1) {
+        return "gold";
     }
 }
 
@@ -171,7 +195,8 @@ function UpdatePlayerBadges(livemap_data) {
                 CharacterName: val.character_name,
                 Reputation: returnReputation(val.reputation),
                 Avatar: val.steam_avatar_medium,
-                BadgeColor: returnPlayerType(val)
+                BadgeColor: returnPlayerType(val),
+                TypeIcon: returnPlayerBadgeTypeIcon(val)
             },
             success: function(data) {
                 // process returned data
@@ -185,18 +210,62 @@ function UpdatePlayerBadges(livemap_data) {
     })
 }
 
-function UpdateWorldChat(livemap_chat, livemap_data) {
-    // return chat data 
-    jQuery.each(livemap_chat, function(i, val) {
-        var CharacterName = val.character_name;
-        var Avatar = val.steam_avatar_medium;
-        var Message = val.message;
-        var IsAdmin = val.is_admin;
+/**
+ * Update World Chat
+ * This function updates world chat by sending a request to the API and then
+ * appending the chat window with the newest chat data.
+ * @param {object} livemap_chat Livemap chat data
+ */
+function UpdateWorldChat(livemap_chat = null) {
+    if (LastWorldChatID > 0) {
+        $.ajax({
+            dataType: "json",
+            type: "GET",
+            url: "api/livemap.api.php",
+            data: {
+                livemap: "wash",
+                filter: "livemap_chat"
+            },
+            success: function(data) {
+                jQuery.each(data.livemap_chat, function(i, val) {
+                    if (val.id > LastWorldChatID) {
+                        var CharacterName = val.character_name;
+                        var Avatar = val.steam_avatar_medium;
+                        var Message = val.message;
+                        var IsAdmin = val.is_admin;
 
-        // create new message
-        var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
-        $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
-    })
+                        // create new message
+                        var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+                        $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat #mCSB_1_container").prepend(data);
+                    }                    
+
+                    if (LastWorldChatID < val.id) { LastWorldChatID = val.id; }
+                });
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+    else
+    {
+        // initial page load
+        jQuery.each(livemap_chat, function(i, val) {
+            var CharacterName = val.character_name;
+            var Avatar = val.steam_avatar_medium;
+            var Message = val.message;
+            var IsAdmin = val.is_admin;
+
+            // create new message
+            var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+            $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
+            
+            if (LastWorldChatID == 0) {
+                LastWorldChatID = val.id;
+            }            
+        });
+    }
+    
 }
 
 /**
@@ -204,10 +273,10 @@ function UpdateWorldChat(livemap_chat, livemap_data) {
  * 
  * This function converts player vector3 position data into a
  * location on the livemap
- * @param string server_id Server identifier
- * @param string Vector3 position data: "(x,z,y)"
+ * @param {string} server_id Server identifier
+ * @param {string} vector3 Position data: "(x,z,y)"
  */
-function CalculateVectorPosition(server_id,map,vector3) {
+function CalculateVectorPosition(server_id, map,vector3) {
     // let's pre-define default map dimensions
     // since all maps are square, we can store just one axis
     var monolith = 1024;
@@ -292,9 +361,16 @@ function returnReputation(rep) {
 // show loading screen during ajax requests
 $(document).on({
     ajaxStart: function() { $(".livemap-loading").removeClass("hidden"); },
-    ajaxStop: function() { $(".livemap-loading").addClass("hidden"); $(".livemap-chat").mCustomScrollbar(); }
+    ajaxStop: function() { $(".livemap-loading").addClass("hidden"); $(".livemap-chat").mCustomScrollbar({advanced:{
+          autoExpandHorizontalScroll:false,
+          updateOnContentResize: true
+        }}); }
 });
 
 $(document).ready(function() {
     init();
+
+    // set refresh interval
+    //setInterval(TriggerLivemapRefresh, 15000);
+    setInterval(UpdateWorldChat, 10000);
 });

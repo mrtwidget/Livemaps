@@ -12,7 +12,9 @@
                 <div class="player-reputation neutral"><?php echo $_GET["Reputation"]; ?></div>
             </div>
             <div class="col-md-2">
-                <img class="livemap-permission" src="images/icons/admin.png" alt="permissions">
+                <?php if (isset($_GET["TypeIcon"])) { ?>
+                    <img class="livemap-permission" src="images/icons/<?php echo $_GET["TypeIcon"]; ?>.png" alt="permissions">
+                <?php } ?>
                 <img class="livemap-skillset hidden" src="images/icons/skillsets/thief.png" alt="skillset">
             </div>
         </div>

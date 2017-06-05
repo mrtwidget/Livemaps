@@ -45,30 +45,20 @@ a:hover {color: whitesmoke; text-decoration: none }
     .livemap-map { position: relative }
 
     /* livemap loading */
-    .livemap-loading,
-    .livemap-loading-sm {
+    .livemap-loading {
         position: absolute;
         width: 100%; height: 100%;
         opacity: 0.8;
-        background: rgb(17,17,17);
-        display: flex;
-        align-items: center;
+        /* background: rgb(17,17,17); */
     }
-        /* small loading message */
-        .livemap-loading-sm { 
-            left: 1em; top: 1em;
-            background: 0;
-        }
-        /* vertical align element container */
         .livemap-loading-container {
-            width: 100%;
+            position: absolute;
+            bottom: 0; right: 1em;
         }
         /* loading gif size */
         .livemap-loading img {
-            width: 220px; height: auto;
+            width: 24px; height: auto;
         }
-        /* small loading gif size */
-        .livemap-loading-sm img { width: 120px }
         /* loading text */
         .livemap-loading p { 
             color: rgba(255,255,255,0.6);

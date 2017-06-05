@@ -6,7 +6,7 @@
                 <!-- loading screen -->
                 <div class="livemap-loading">
                     <div class="livemap-loading-container">
-                        <img src="images/loading.gif" alt="loading">
+                        <img src="images/favicon.png" alt="loading">
                         <p>loading</p>
                     </div>
                 </div>

@@ -83,15 +83,15 @@ class API {
         $livemap_init_query = "SELECT * FROM $livemap_server WHERE last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND)";
         $livemap_server_query = "SELECT * FROM $livemap_server WHERE last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND) AND server_id = :server_id";
         $livemap_data_query = "SELECT * FROM $livemap_data WHERE (last_refresh > last_disconnect OR last_disconnect IS NULL) AND last_refresh > DATE_SUB(NOW(), INTERVAL 30 SECOND) AND server_id = :server_id";
-        $livemap_chat_query = "SELECT livemap_chat.server_id, livemap_chat.steam_id, livemap_chat.message, livemap_chat.timestamp, livemap_data.character_name, livemap_data.steam_avatar_medium, livemap_data.is_admin FROM $livemap_chat INNER JOIN livemap_data ON livemap_chat.steam_id = livemap_data.CSteamID WHERE timestamp > DATE_SUB(NOW(), INTERVAL $livemap_chat_activity_duration MINUTE) AND livemap_chat.server_id = :server_id ORDER BY timestamp DESC";
+        $livemap_chat_query = "SELECT livemap_chat.id, livemap_chat.server_id, livemap_chat.steam_id, livemap_chat.message, livemap_chat.timestamp, livemap_data.character_name, livemap_data.steam_avatar_medium, livemap_data.is_admin FROM $livemap_chat INNER JOIN livemap_data ON livemap_chat.steam_id = livemap_data.CSteamID WHERE timestamp > DATE_SUB(NOW(), INTERVAL $livemap_chat_activity_duration MINUTE) AND livemap_chat.server_id = :server_id ORDER BY timestamp DESC";
 
-        // init() load query
+        // if only $filter is set to `livemap_server` return server status only
         if ($server_id == null && $filter == $livemap_server) {
             $query = $this->mysql->query($livemap_init_query);
             return $query->fetchAll(PDO::FETCH_ASSOC);
         } else {
             // loop through each table and collect data matching passed `server_id`
-            foreach ($this->config["database"]["tables"] as $table) {            
+            foreach ($this->config["database"]["tables"] as $table) {
                 // filter results if $filter is set
                 if ($filter == null || $filter == $table) {
                     // input sanitization
@@ -107,8 +107,9 @@ class API {
                     }
                 }
             }
+
             // if `livemap_server` is empty return null
-            return isset($result[$livemap_server]) ? $result : null;
+            return $result;
         }
     }
 }
