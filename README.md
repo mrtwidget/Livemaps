@@ -4,7 +4,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 *The WebUI portion of this plugin is optional*, and is intended only as a default theme for this project. The API may be used independently to support fully custom livemap themes and features.
 
-![picture alt](http://nexisrealms.com/images/hosted/livemap-dev-03.jpg "Livemap v0.2 - under development")
+![picture alt](http://nexisrealms.com/images/hosted/livemap-dev-04.jpg "Livemap v0.2 - under development")
 
 **Current Release :**
 - Livemap v0.2 *- under development*
