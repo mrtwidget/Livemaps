@@ -212,6 +212,7 @@ function UpdatePlayerBadges(livemap_data) {
 
 /**
  * Update World Chat
+ * 
  * This function updates world chat by sending a request to the API and then
  * appending the chat window with the newest chat data.
  * @param {object} livemap_chat Livemap chat data
@@ -227,6 +228,7 @@ function UpdateWorldChat(livemap_chat = null) {
                 filter: "livemap_chat"
             },
             success: function(data) {
+                var newestMsgID = 0;
                 jQuery.each(data.livemap_chat, function(i, val) {
                     if (val.id > LastWorldChatID) {
                         var CharacterName = val.character_name;
@@ -235,12 +237,15 @@ function UpdateWorldChat(livemap_chat = null) {
                         var IsAdmin = val.is_admin;
 
                         // create new message
-                        var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+                        var data = '<div class="media" id="msg' + val.id + '"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
                         $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat #mCSB_1_container").prepend(data);
-                    }                    
+                        $("#msg" + val.id).velocity("transition.perspectiveUpIn", { stagger: 300 });
+                    }
 
-                    if (LastWorldChatID < val.id) { LastWorldChatID = val.id; }
+                    if (newestMsgID < val.id) { newestMsgID = val.id; }
                 });
+
+                LastWorldChatID = newestMsgID;
             },
             error: function(e) {
                 console.log(e);
