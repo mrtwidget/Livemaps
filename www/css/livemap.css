@@ -29,8 +29,7 @@ a:hover {color: whitesmoke; text-decoration: none }
 }
 
 /* livemap default */
-.livemap, 
-.livemap-container,
+.livemap,
 .livemap-badge-container {
     position: relative;
     padding: 0.5em; margin: 0 0 0.5em 0;
@@ -88,10 +87,11 @@ a:hover {color: whitesmoke; text-decoration: none }
         }
 
 
-
-
-
     /* player badges */
+    .livemap-badges-container {
+        max-height: 600px;
+        overflow: auto;
+    }
     .livemap-badge-container { max-height: 46px }
     .livemap-badge-container:hover { outline: 1px solid #aaa; cursor: pointer }
 

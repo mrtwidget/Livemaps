@@ -39,6 +39,9 @@ var RefreshInterval;
 /* Refresh Interval */
 var LastWorldChatID = 0;
 
+/* Last Livemap Data */
+var LastLivemapData = [];
+
 /**
  * This function queries the API for active server data. If any active servers
  * are found, all relevant data is then queried and loaded to the page
@@ -71,10 +74,10 @@ function init() {
 function LoadLivemaps(livemap_server) {
     // loop through each server instance returned
     jQuery.each(livemap_server, function(i, val) {
-        // if instance exists in livemapInstances, load the livemap
-        if (DisabledLivemaps.indexOf(val.server_id.toLowerCase()) == -1) {
+        // if instance exists in ActiveInstances, load the livemap to view
+        if (DisabledLivemaps.indexOf(val.server_id) == -1) {
             // Add this server to the active instance array
-            ActiveInstances.push(val.server_id.toLowerCase());
+            ActiveInstances.push(val.server_id);
             
             // generate the map
             $.ajax({
@@ -125,10 +128,12 @@ function RefreshLivemap(server_id) {
             UpdateOnlinePlayerCount(data.livemap_server[0]);
             UpdatePlayerBadges(data.livemap_data);
             UpdatePlayerNodes(data.livemap_server[0], data.livemap_data);
-            UpdateWorldChat(data.livemap_chat);
+            UpdateWorldChat(data.livemap_chat, data.livemap_server[0]);
+
+            LastLivemapData[server_id] = data.livemap_data;
         },
         error: function(e) {
-            console.log("ERROR: " + e.val);
+            console.log("[FATAL ERROR]: " + e.val);
         }
     });
 }
@@ -163,51 +168,90 @@ function returnOnlinePlayerCount(livemap_server) {
 
 function UpdatePlayerNodes(livemap_server,livemap_data) {
     jQuery.each(livemap_data, function(i, val) {
-        $.ajax({
-            type: "GET",
-            url: "templates/node.livemap.php",
-            data: {
-                // send player data
-                CSteamID: val.CSteamID,
-                CharacterName: val.character_name,
-                Position: returnNodePositionStyle(livemap_server.server_id, livemap_server.map, val.position)
+        if ($(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").length == 0) {
+            $.ajax({
+                type: "GET",
+                url: "templates/node.livemap.php",
+                data: {
+                    // send player data
+                    CSteamID: val.CSteamID,
+                    CharacterName: val.character_name,
+                    Position: returnNodePositionStyle(livemap_server.server_id, livemap_server.map, val.position)
+                },
+                success: function(data) {
+                    // process returned data
+                    $(".livemap[data-server-id='" + val.server_id + "'] .livemap-nodes").append(data);
+                    $(".livemap-node-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.bounceDownIn", { stagger: 1000 });
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        }
+        else
+        {
+            // move player
+            var calcPos = CalculateVectorPosition(val.server_id, livemap_server.map, val.position);
+
+            $(".livemap-node-container[data-steam-id='" + val.CSteamID + "']").velocity({
+                left: calcPos[0],
+                bottom: calcPos[1]
             },
-            success: function(data) {
-                // process returned data
-                $(".livemap[data-server-id='" + val.server_id + "'] .livemap-nodes").append(data);
-                $(".livemap-nodes [data-steam-id='" + val.CSteamID + "']").velocity("transition.bounceDownIn", { stagger: 250 });
-            },
-            error: function(e) {
-                console.log(e);
-            }
-        });
+            {
+                duration: 15000, 
+                easing: "linear"
+            });
+        }
     })
 }
 
 function UpdatePlayerBadges(livemap_data) {
     jQuery.each(livemap_data, function(i, val) {
-        $.ajax({
-            type: "GET",
-            url: "templates/badge.livemap.php",
-            data: {
-                // send player data
-                CSteamID: val.CSteamID,
-                CharacterName: val.character_name,
-                Reputation: returnReputation(val.reputation),
-                Avatar: val.steam_avatar_medium,
-                BadgeColor: returnPlayerType(val),
-                TypeIcon: returnPlayerBadgeTypeIcon(val)
-            },
-            success: function(data) {
-                // process returned data
-                $(".livemap[data-server-id='" + val.server_id + "'] .livemap-badges").append(data);
-                $(".livemap-badges [data-steam-id='" + val.CSteamID + "']").velocity("transition.flipYIn", { stagger: 300 });
-            },
-            error: function(e) {
-                console.log(e);
+        // remove player badge 
+        if (LastLivemapData[val.server_id] != null) {
+            var match = false;
+            jQuery.each(LastLivemapData[val.server_id], function(l, l_val) {
+                if (val.CSteamID == l_val.CSteamID) {
+                    match = true;
+                }
+            })
+            if (!match) {
+                console.log(val.CSteamID  + " DISCONNECTED!");
+                //$(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.flipYOut", { stagger: 300 });
+                $(".livemap[data-steam-id='" + val.CSteamID + "']").remove();
             }
-        });
+        }
+
+        // add player badge
+        if ($(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").length == 0) {
+            $.ajax({
+                type: "GET",
+                url: "templates/badge.livemap.php",
+                data: {
+                    // send player data
+                    CSteamID: val.CSteamID,
+                    CharacterName: val.character_name,
+                    Reputation: returnReputation(val.reputation),
+                    Avatar: val.steam_avatar_medium,
+                    BadgeColor: returnPlayerType(val),
+                    TypeIcon: returnPlayerBadgeTypeIcon(val)
+                },
+                success: function(data) {
+                    // process returned data
+                    $(".livemap[data-server-id='" + val.server_id + "'] .livemap-badges-container " + ($("#mCSB_2_container").length == 0 ? "" : "#mCSB_2_container")).append(data);
+                    $(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.flipYIn", { stagger: 300 });
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        }
+        else
+        {
+            // update player badge
+        }
     })
+
 }
 
 /**
@@ -217,14 +261,14 @@ function UpdatePlayerBadges(livemap_data) {
  * appending the chat window with the newest chat data.
  * @param {object} livemap_chat Livemap chat data
  */
-function UpdateWorldChat(livemap_chat = null) {
+function UpdateWorldChat(livemap_chat = null, livemap_server) {
     if (LastWorldChatID > 0) {
         $.ajax({
             dataType: "json",
             type: "GET",
             url: "api/livemap.api.php",
             data: {
-                livemap: "wash",
+                livemap: livemap_server.server_id,
                 filter: "livemap_chat"
             },
             success: function(data) {
@@ -281,7 +325,7 @@ function UpdateWorldChat(livemap_chat = null) {
  * @param {string} server_id Server identifier
  * @param {string} vector3 Position data: "(x,z,y)"
  */
-function CalculateVectorPosition(server_id, map,vector3) {
+function CalculateVectorPosition(server_id,map,vector3) {
     // let's pre-define default map dimensions
     // since all maps are square, we can store just one axis
     var monolith = 1024;
@@ -294,11 +338,11 @@ function CalculateVectorPosition(server_id, map,vector3) {
     /**
      * this offset is needed due to the difference between map
      * dimensions and player constraints. i.e. washington is set to
-     * 2048x2048, total = 4096, but map bounds stop players at
+     * 2048+2048, total = 4096, but map bounds stop players at
      * 1983.5 on all four sides of the map. 1983.5 * 2 = 3967, so...
      * offset calculation (washington): 4096 - (1983.5 * 2) = 129 
      */
-    var offset = 129;
+    var offset = 129; //(eval(map.toLowerCase()) * 2) / 960 * 100;
 
     // store the targeted livemap element for safe keeping
     var livemap = $(".livemap[data-server-id='" + server_id + "'] .livemap-nodes");
@@ -365,17 +409,26 @@ function returnReputation(rep) {
 
 // show loading screen during ajax requests
 $(document).on({
-    ajaxStart: function() { $(".livemap-loading").removeClass("hidden"); },
-    ajaxStop: function() { $(".livemap-loading").addClass("hidden"); $(".livemap-chat").mCustomScrollbar({advanced:{
-          autoExpandHorizontalScroll:false,
-          updateOnContentResize: true
-        }}); }
+    ajaxStart: function() { 
+        $(".livemap-loading").removeClass("hidden"); 
+    },
+    ajaxStop: function() { 
+        $(".livemap-loading").addClass("hidden"); 
+
+        $(".livemap-chat").mCustomScrollbar({advanced:{
+            autoExpandHorizontalScroll:false,
+            updateOnContentResize: true
+        }});
+        $(".livemap-badges-container").mCustomScrollbar({advanced:{
+            autoExpandHorizontalScroll:false,
+            updateOnContentResize: true
+        }});
+    }
 });
 
 $(document).ready(function() {
     init();
 
     // set refresh interval
-    //setInterval(TriggerLivemapRefresh, 15000);
-    setInterval(UpdateWorldChat, 10000);
+    setInterval(TriggerLivemapRefresh, 15000);
 });
