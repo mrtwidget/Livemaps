@@ -57,15 +57,15 @@ namespace NEXIS.Livemap
             Logger.Log("Livemaps successfully unloaded!", ConsoleColor.Green);
         }
 
-        private bool IsPlayerHidden(UnturnedPlayer player)
+        public int IsPlayerHidden(UnturnedPlayer player)
         {
             if (Livemap.PlayersHidden.ContainsKey(player.CSteamID))
             {
-                return true;
+                return 1;
             }
             else
             {
-                return false;
+                return 0;
             }
         }
 

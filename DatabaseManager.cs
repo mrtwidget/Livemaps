@@ -162,7 +162,7 @@ namespace NEXIS.Livemap
                     "skill_toughness INT(8) NULL," +
                     "skill_vitality INT(8) NULL," +
                     "skill_warmblooded INT(8) NULL," +
-                    "is_hidden TINYINT(1) NULL," +
+                    "is_hidden TINYINT(1) DEFAULT 0," +
                     "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
                     "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                     "last_disconnect TIMESTAMP NULL," +
@@ -332,12 +332,12 @@ namespace NEXIS.Livemap
                 if (result == null)
                 {
                     // player does not exist, create it
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,server_id,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded) VALUES (" +
+                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,server_id,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded,is_hidden) VALUES (" +
                     "'" + player.CSteamID.ToString() + "'," +
                     "'" + player.CharacterName.ToString() + "'," +
                     "'" + player.DisplayName.ToString() + "'," +
                     "'" + player.SteamGroupID.ToString() + "'," +
-                    "'" + player.SteamProfile.AvatarMedium.ToString() + "'," +
+                    "'" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.DefaultSteamAvatar) + "'," +
                     "'" + Provider.serverID + "'," +
                     "'" + player.IP.ToString() + "'," +
                     "'" + player.Ping.ToString() + "'," +
@@ -385,7 +385,8 @@ namespace NEXIS.Livemap
                     player.GetSkillLevel(UnturnedSkill.Survival) + "," + 
                     player.GetSkillLevel(UnturnedSkill.Toughness) + "," + 
                     player.GetSkillLevel(UnturnedSkill.Vitality) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Warmblooded) + 
+                    player.GetSkillLevel(UnturnedSkill.Warmblooded) + "," +
+                    Livemap.Instance.IsPlayerHidden(player) +
                     ")";
 
                     MySQLCommand.ExecuteNonQuery();
@@ -455,7 +456,8 @@ namespace NEXIS.Livemap
                     "skill_survival = " + player.GetSkillLevel(UnturnedSkill.Survival) + "," +
                     "skill_toughness = " + player.GetSkillLevel(UnturnedSkill.Toughness) + "," +
                     "skill_vitality = " + player.GetSkillLevel(UnturnedSkill.Vitality) + "," +
-                    "skill_warmblooded = " + player.GetSkillLevel(UnturnedSkill.Warmblooded) + " " +
+                    "skill_warmblooded = " + player.GetSkillLevel(UnturnedSkill.Warmblooded) + "," +
+                    "is_hidden = " + Livemap.Instance.IsPlayerHidden(player) + " " +
                     "WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
 
                     MySQLCommand.ExecuteNonQuery();

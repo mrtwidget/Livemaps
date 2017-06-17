@@ -54,7 +54,7 @@ namespace NEXIS.Livemap
             // if livemap hide is enabled in config, toggle player [hide|show]
             if (Livemap.Instance.Configuration.Instance.EnableHiding)
             {
-                // is player in the HidenPlayers dictionary?
+                // is player in the PlayersHidden dictionary?
                 if (Livemap.PlayersHidden.ContainsKey(player.CSteamID))
                 {
                     Livemap.PlayersHidden.Remove(player.CSteamID);

@@ -10,6 +10,7 @@ namespace NEXIS.Livemap
         public bool EnableHideCooldown;
         public int PlayerHideDuration;
         public int HideCooldownDuration;
+        public string DefaultSteamAvatar;
 
         public string DatabaseHost;
         public string DatabaseUser;
@@ -29,6 +30,7 @@ namespace NEXIS.Livemap
             EnableHideCooldown = false;
             PlayerHideDuration = 300;
             HideCooldownDuration = 600;
+            DefaultSteamAvatar = "images/avatars/unknown.png";
 
             // Database Settings
             DatabaseHost = "localhost";
