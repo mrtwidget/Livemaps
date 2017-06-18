@@ -336,7 +336,7 @@ namespace NEXIS.Livemap
                     "'" + player.CSteamID.ToString() + "'," +
                     "'" + player.CharacterName.ToString() + "'," +
                     "'" + player.DisplayName.ToString() + "'," +
-                    "'" + player.SteamGroupID.ToString() + "'," +
+                    "'" + (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0") + "'," +
                     "'" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar) + "'," +
                     "'" + Provider.serverID + "'," +
                     "'" + player.IP.ToString() + "'," +
@@ -397,8 +397,8 @@ namespace NEXIS.Livemap
                     MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET " +
                     "character_name = '" + player.CharacterName.ToString() + "'," +
                     "display_name = '" + player.DisplayName.ToString() + "'," +
-                    "steam_group_id = '" + player.SteamGroupID.ToString() + "'," +
-                    "steam_avatar_medium = '" + player.SteamProfile.AvatarMedium.ToString() + "'," +
+                    "steam_group_id = '" + (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0") + "'," +
+                    "steam_avatar_medium = '" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar) + "'," +
                     "server_id = '" + Provider.serverID + "'," +
                     "ip_address = '" + player.IP.ToString() + "'," +
                     "ping = '" + player.Ping.ToString() + "'," +
