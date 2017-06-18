@@ -4,13 +4,13 @@ namespace NEXIS.Livemap
 {
     public class LivemapConfiguration : IRocketPluginConfiguration
     {
-        public int RefreshInterval;
-        public bool EnableWorldChat;
-        public bool EnableHiding;
-        public bool EnableHideCooldown;
+        public int LivemapRefreshInterval;
+        public bool WorldChatEnabled;
+        public bool PlayerHideEnabled;
+        public bool PlayerHideCooldownEnabled;
         public int PlayerHideDuration;
-        public int HideCooldownDuration;
-        public string DefaultSteamAvatar;
+        public int PlayerHideCooldownDuration;
+        public string PlayerDefaultSteamAvatar;
 
         public string DatabaseHost;
         public string DatabaseUser;
@@ -24,13 +24,13 @@ namespace NEXIS.Livemap
         public void LoadDefaults()
         {
             // General Settings
-            RefreshInterval = 15;
-            EnableWorldChat = true;
-            EnableHiding = true;
-            EnableHideCooldown = false;
+            LivemapRefreshInterval = 15;
+            WorldChatEnabled = true;
+            PlayerHideEnabled = true;
+            PlayerHideCooldownEnabled = true;
             PlayerHideDuration = 300;
-            HideCooldownDuration = 600;
-            DefaultSteamAvatar = "images/avatars/unknown.png";
+            PlayerHideCooldownDuration = 600;
+            PlayerDefaultSteamAvatar = "images/avatars/unknown.png";
 
             // Database Settings
             DatabaseHost = "localhost";

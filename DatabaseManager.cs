@@ -337,7 +337,7 @@ namespace NEXIS.Livemap
                     "'" + player.CharacterName.ToString() + "'," +
                     "'" + player.DisplayName.ToString() + "'," +
                     "'" + player.SteamGroupID.ToString() + "'," +
-                    "'" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.DefaultSteamAvatar) + "'," +
+                    "'" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar) + "'," +
                     "'" + Provider.serverID + "'," +
                     "'" + player.IP.ToString() + "'," +
                     "'" + player.Ping.ToString() + "'," +
@@ -612,7 +612,7 @@ namespace NEXIS.Livemap
         public void OnPlayerChatted(UnturnedPlayer player, ref Color color, string message, EChatMode chatMode)
         {
             // save world chat, but not commands
-            if (Livemap.Instance.Configuration.Instance.EnableWorldChat && chatMode == EChatMode.GLOBAL && !message.StartsWith("/") && !message.StartsWith("@")) {
+            if (Livemap.Instance.Configuration.Instance.WorldChatEnabled && chatMode == EChatMode.GLOBAL && !message.StartsWith("/") && !message.StartsWith("@")) {
                 try
                 {
                     MySqlConnection MySQLConnection = CreateConnection();

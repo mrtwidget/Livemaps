@@ -3,6 +3,7 @@ using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
+using Rocket.Unturned.Chat;
 using SDG.Unturned;
 using Steamworks;
 using System;
@@ -22,8 +23,10 @@ namespace NEXIS.Livemap
         public DateTime? LastRefresh = null;
         // <Steam64ID, CharacterName>
         public static Dictionary<CSteamID, string> PlayersOnline = new Dictionary<CSteamID, string>();
-        // <Steam64ID, timestamp hidden>
+        // <Steam64ID, DateTime>
         public static Dictionary<CSteamID, DateTime?> PlayersHidden = new Dictionary<CSteamID, DateTime?>();
+        // <Steam64ID, DateTime>
+        public static Dictionary<CSteamID, DateTime?> PlayersHiddenCooldown = new Dictionary<CSteamID, DateTime?>();
 
         protected override void Load()
         {
@@ -61,31 +64,71 @@ namespace NEXIS.Livemap
         {
             if (Livemap.PlayersHidden.ContainsKey(player.CSteamID))
             {
-                return 1;
+                return 1; // true
             }
             else
             {
-                return 0;
+                return 0; // false
             }
         }
 
         public void FixedUpdate()
         {
-            if (this.State == PluginState.Loaded && Livemap.Instance.LastRefresh == null || (DateTime.Now - this.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.RefreshInterval)
-            {
-                // refresh server data
-                Livemap.Instance.Database.RefreshServer();
+            if (this.State == PluginState.Loaded) {
 
-                // loop through each player and update the database
-                foreach (SteamPlayer player in Provider.clients)
+                /* Request API Update */
+                if (Livemap.Instance.LastRefresh == null || (DateTime.Now - this.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.LivemapRefreshInterval)
                 {
-                    // refresh player data
-                    if (player == null) { continue; }
-                    Livemap.Instance.Database.RefreshPlayer(UnturnedPlayer.FromSteamPlayer(player));
+                    // refresh server data
+                    Livemap.Instance.Database.RefreshServer();
+
+                    // loop through each player and update the database
+                    foreach (SteamPlayer player in Provider.clients)
+                    {
+                        // refresh player data
+                        if (player == null) { continue; }
+                        Livemap.Instance.Database.RefreshPlayer(UnturnedPlayer.FromSteamPlayer(player));
+                    }
+                    // update refresh timestamp
+                    Livemap.Instance.LastRefresh = DateTime.Now;
                 }
 
-                // update refresh timestamp
-                Livemap.Instance.LastRefresh = DateTime.Now;
+                /* Update Player Cooldown */
+                if (Livemap.Instance.Configuration.Instance.PlayerHideCooldownEnabled) {
+
+                    /* Livemap Hide Cooldown Expiration */
+                    Dictionary<CSteamID, DateTime?> cooldownHiddenPlayers = new Dictionary<CSteamID, DateTime?>(Livemap.PlayersHiddenCooldown);
+                    foreach (KeyValuePair<CSteamID, DateTime?> cooldownPlr in cooldownHiddenPlayers)
+                    {
+                        /* Player Cooldown Expired */
+                        if ((DateTime.Now - (DateTime)cooldownPlr.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.PlayerHideCooldownDuration)
+                        {
+                            // remove player cooldown
+                            Livemap.PlayersHiddenCooldown.Remove(cooldownPlr.Key);
+
+                            // notify player
+                            UnturnedChat.Say(UnturnedPlayer.FromCSteamID(cooldownPlr.Key), Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_end"));
+                        }
+                    }
+
+                    /* Player Hide Expiration */
+                    Dictionary<CSteamID, DateTime?> hiddenPlayers = new Dictionary<CSteamID, DateTime?>(Livemap.PlayersHidden);
+                    foreach (KeyValuePair<CSteamID, DateTime?> hiddenPlr in hiddenPlayers)
+                    {
+                        /* Player Hide Expired */
+                        if ((DateTime.Now - (DateTime)hiddenPlr.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.PlayerHideDuration)
+                        {
+                            // add player to cooldown
+                            Livemap.PlayersHiddenCooldown.Add(hiddenPlr.Key, DateTime.Now);
+
+                            // unhide player
+                            Livemap.PlayersHidden.Remove(hiddenPlr.Key);
+
+                            // notify player
+                            UnturnedChat.Say(UnturnedPlayer.FromCSteamID(hiddenPlr.Key), Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_start", Livemap.Instance.Configuration.Instance.PlayerHideCooldownDuration + " seconds"));
+                        }
+                    }
+                }
             }
         }
 
@@ -93,26 +136,42 @@ namespace NEXIS.Livemap
         {
             get
             {
-                return new TranslationList(){
-                    {"livemap_hidden_cooldown", "You must wait {0} before you can hide again!"},
+                return new TranslationList() {
                     {"livemap_command_usage", "Usage: Type /livemap to toggle hiding"},
-                    {"livemap_hidding_disabled", "Livemap hiding has been disabled!"},
-                    {"livemap_hidden_true", "You are now hidden from the livemap."},
-                    {"livemap_hidden_false", "You are now visible on the livemap."}
+                    {"livemap_hidden_disabled", "Livemap hiding has been disabled! :("},
+                    {"livemap_hidden_true", "Your location will be hidden on the Livemap for the next {0}!"},
+                    {"livemap_hidden_false", "Your location is now visible to anyone on the Livemap!"},
+                    {"livemap_hidden_cooldown", "You must wait {0} before you can hide your location again!"},
+                    {"livemap_hidden_cooldown_end", "Livemap cooldown expired! You can hide your location again!"},
+                    {"livemap_hidden_cooldown_start", "Livemap hiding expired! You must wait {0} to hide again!"},
+                    {"livemap_hidden_cooldown_remaining", "Cooldown active! You must wait {0} before you can hide again!"}
                 };
             }
         }
 
-
+        /* Player Connected */
         public void Events_OnPlayerConnected(UnturnedPlayer player)
         {
-            // player connected
+            // update player database row
             Livemap.Instance.Database.OnPlayerConnected(player);
         }
 
+        /* Player Disconnect */
         public void Events_OnPlayerDisconnected(UnturnedPlayer player)
         {
-            // player disconnected
+            // remove player from hidden dictionary
+            if (Livemap.PlayersHidden.ContainsKey(player.CSteamID))
+            {
+                Livemap.PlayersHidden.Remove(player.CSteamID);
+            }
+
+            // remove player from cooldown dictionary
+            if (Livemap.PlayersHiddenCooldown.ContainsKey(player.CSteamID))
+            {
+                Livemap.PlayersHiddenCooldown.Remove(player.CSteamID);
+            }
+
+            // update player database row
             Livemap.Instance.Database.OnPlayerDisconnected(player);
         }
 
