@@ -17,23 +17,21 @@
                 <!-- map overlay -->
                 <div class="livemap-hud">
                     <div class="livemap-hud-map"><?php echo strtoupper($_GET["Map"]); ?></div>
-                    <div class="livemap-hud-online"><?php echo $_GET["PlayersOnline"]; ?></div>
+                    <div class="livemap-hud-online-players"><?php echo $_GET["PlayersOnline"]; ?></div>
                 </div>
-            </div>
-            <!-- world chat -->
-            <div class="livemap-chat mCustomScrollbar" data-mcs-theme="light"></div>
+                <!-- world chat -->
+            <div class="livemap-chat"></div>
+            </div>            
         </div>
         <div class="col-lg-4 col-md-3 hidden-xs" style="padding-left:0">
             <div class="livemap-badges">
-                <div class="livemap-container">
-                    <div class="livemap-badge-container">
-                        <div class="livemap-badge-player">
-                            <img src="images/icons/players-online.png" alt=""> 
-                            <span class="livemap-online-players">Players: 0/0</span>
-                        </div>
+                <div class="livemap-badge-container">
+                    <div class="livemap-badge-player">
+                        <img src="images/icons/players-online.png" alt=""> 
+                        <span class="livemap-badges-online-players">Players: <span class="player-count">0/0</span></span>
                     </div>
-                    <div class="livemap-badges-container mCustomScrollbar" data-mcs-theme="light"></div>
                 </div>
+                <div class="livemap-badges-container"></div>
             </div>
         </div>
     </div><!-- /.row -->

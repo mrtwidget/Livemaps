@@ -2,47 +2,35 @@
  * Disable Specific Livemaps
  * Use the following array to disable specific livemaps that you do not want to
  * display on the page by entering their server instance names below
- * NOTE: **lowercase only**
+ * NOTE: **LOWERCASE ONLY!!**
  */
-var DisabledLivemaps = [];
-/* var DisabledLivemaps = ['server1', 'pei']; */
 
-/**
- * Livemap Hidding Transitions
- * These are custom Velocity.js transitions for when a player hides/unhides 
- * from a livemap
- */
-$.Velocity.RegisterUI("transition.livemapBadgeIn", {
-    defaultDuration: 3000,
-    calls: [
-        [ { scaleX: [1, 0.625], scaleY: [1, 0.625], translateZ: 0 }, 0.1, { easing: "spring" } ],
-        [ { rotateX: -45 }, 0.25, { easing: "spring" } ],
-        [ { opacity: [0.2, 1], rotateX: 1080 }, 0.25, { easing: "spring" } ]
-    ]
-});
+/* Disabled Livemaps */
+var DisabledLivemaps = []; /* var DisabledLivemaps = ['server1', 'pei']; */
 
-$.Velocity.RegisterUI("transition.livemapBadgeOut", {
-    defaultDuration: 3000,
-    calls: [
-        [ { scaleX: [1, 0.625], scaleY: [1, 0.625], translateZ: 0 }, 0.1, { easing: "spring" } ],
-        [ { rotateX: 90 }, 0.25, { easing: "spring" } ],
-        [ { opacity: [0.4, 0.2], rotateX: -1080 }, 0.25, { easing: "spring" } ]
-    ]
-});
+/* Refresh Interval */
+var RefreshInterval = 15000; // 15 seconds
+
+/* Max Refreshes */
+var MaxRefresh = 20;
+var TotalRefreshes = 0; // counter
+
+/* ================ [ DO NOT EDIT BELOW THIS LINE ] ================ */
 
 /* Active Instances */
 var ActiveInstances = [];
-
+/* Connected Players [CSteam64ID] */
+var ConnectedPlayers = [];
+/* Hidden Players */
+var HiddenPlayers = [];
 /* Refresh Interval */
-var RefreshInterval;
-
-/* Refresh Interval */
-var LastWorldChatID = 0;
-
+var LastWorldChatID = [];
 /* Last Livemap Data */
 var LastLivemapData = [];
 
 /**
+ * INITIATE LIVEMAP INTERFACE
+ * 
  * This function queries the API for active server data. If any active servers
  * are found, all relevant data is then queried and loaded to the page
  */
@@ -64,18 +52,18 @@ function init() {
 }
 
 /**
- * Load All Active Livemaps
+ * LOAD ALL ACTIVELY RUNNING SERVER INSTANCES
  * 
  * This function queries the API for servers that have been updated in the
  * past 30 seconds and returns a populated element that is added to the 
  * .livemaps element found in index.html
- * @param {obj} livemap_server 
+ * @param {obj} livemap_server Returned JSON server data
  */
 function LoadLivemaps(livemap_server) {
     // loop through each server instance returned
     jQuery.each(livemap_server, function(i, val) {
         // if instance exists in ActiveInstances, load the livemap to view
-        if (DisabledLivemaps.indexOf(val.server_id) == -1) {
+        if (DisabledLivemaps.indexOf(val.server_id.toLowerCase()) == -1) {
             // Add this server to the active instance array
             ActiveInstances.push(val.server_id);
             
@@ -87,7 +75,7 @@ function LoadLivemaps(livemap_server) {
                     // send server data
                     ServerID: val.server_id,
                     Map: val.map,
-                    PlayersOnline: returnOnlinePlayerCount(val)
+                    PlayersOnline: returnOnlinePlayerCountString(val)
                 },
                 success: function(data) {
                     // add generated map to the page
@@ -103,17 +91,25 @@ function LoadLivemaps(livemap_server) {
 }
 
 function TriggerLivemapRefresh() {
-    for (var i = 0; i < ActiveInstances.length; i++) {
-        RefreshLivemap(ActiveInstances[i]);
-    }    
+    if (TotalRefreshes < MaxRefresh) {
+        for (var i = 0; i < ActiveInstances.length; i++) {
+            RefreshLivemap(ActiveInstances[i]);
+        }
+        TotalRefreshes++;
+    }
+    else
+    {
+        alert("Livemap timeout. Please refresh the page.");
+    }
+    
 }
 
 /**
- * Refresh Livemap
+ * REFRESH LIVEMAP
  * 
  * This function sends a request to the API and retrieves all server table data
  * and then updates the livemap data
- * @param {string} server_id 
+ * @param {string} server_id Server instance name
  */
 function RefreshLivemap(server_id) {
     $.ajax({
@@ -125,200 +121,363 @@ function RefreshLivemap(server_id) {
             livemap: server_id
         },
         success: function(data) {
-            UpdateOnlinePlayerCount(data.livemap_server[0]);
+            LastLivemapData[server_id] = data.livemap_data;
+
+            UpdateConnectedPlayersArray(data);
+            UpdateLivemapHUD(data.livemap_server[0]);
             UpdatePlayerBadges(data.livemap_data);
             UpdatePlayerNodes(data.livemap_server[0], data.livemap_data);
             UpdateWorldChat(data.livemap_chat, data.livemap_server[0]);
-
-            LastLivemapData[server_id] = data.livemap_data;
         },
         error: function(e) {
-            console.log("[FATAL ERROR]: " + e.val);
+            console.log(e);
         }
     });
 }
 
-function returnPlayerType(player) {
-    if (player.is_admin == 1) {
-        return "admin";
-    } else if (player.is_pro == 1) {
-        return "gold";
-    } else if (player.in_vehicle == 1) {
-        return "vehicle";
-    } else {
-        return "normal";
-    }
-}
+/**
+ * UPDATE CONNECTED PLAYERS ARRAY
+ * 
+ * This function iterates through the ConnectedPlayers object (before updating
+ * anything else) and proceeds to search for a matching steam id within the 
+ * most recently returned API request. Matching results are ignored. If a match
+ * is not found, the player node and (name)badge will be removed or added.
+ * @param {obj} data Returned API JSON data
+ */
+function UpdateConnectedPlayersArray(data) {
+    var disconnectMatch = false;
+    var connectMatch = false;
 
-function returnPlayerBadgeTypeIcon(player) {
-    if (player.is_admin == 1) {
-        return "admin";
-    } else if (player.is_pro == 1) {
-        return "gold";
-    }
-}
-
-function UpdateOnlinePlayerCount(livemap_server) {
-    $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-online-players").html("Players: " + livemap_server.online_players + "/" + livemap_server.max_players);
-}
-
-function returnOnlinePlayerCount(livemap_server) {
-    return livemap_server.online_players + "/" + livemap_server.max_players;
-}
-
-function UpdatePlayerNodes(livemap_server,livemap_data) {
-    jQuery.each(livemap_data, function(i, val) {
-        if ($(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").length == 0) {
-            $.ajax({
-                type: "GET",
-                url: "templates/node.livemap.php",
-                data: {
-                    // send player data
-                    CSteamID: val.CSteamID,
-                    CharacterName: val.character_name,
-                    Position: returnNodePositionStyle(livemap_server.server_id, livemap_server.map, val.position)
-                },
-                success: function(data) {
-                    // process returned data
-                    $(".livemap[data-server-id='" + val.server_id + "'] .livemap-nodes").append(data);
-                    $(".livemap-node-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.bounceDownIn", { stagger: 1000 });
-                },
-                error: function(e) {
-                    console.log(e);
-                }
-            });
-        }
-        else
-        {
-            // move player
-            var calcPos = CalculateVectorPosition(val.server_id, livemap_server.map, val.position);
-
-            $(".livemap-node-container[data-steam-id='" + val.CSteamID + "']").velocity({
-                left: calcPos[0],
-                bottom: calcPos[1]
-            },
-            {
-                duration: 15000, 
-                easing: "linear"
-            });
-        }
-    })
-}
-
-function UpdatePlayerBadges(livemap_data) {
-    jQuery.each(livemap_data, function(i, val) {
-        // remove player badge 
-        if (LastLivemapData[val.server_id] != null) {
-            var match = false;
-            jQuery.each(LastLivemapData[val.server_id], function(l, l_val) {
-                if (val.CSteamID == l_val.CSteamID) {
-                    match = true;
-                }
-            })
-            if (!match) {
-                console.log(val.CSteamID  + " DISCONNECTED!");
-                //$(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.flipYOut", { stagger: 300 });
-                $(".livemap[data-steam-id='" + val.CSteamID + "']").remove();
+    /* check if player connected */
+    jQuery.each(data.livemap_data, function(index, player) {
+        // check if player exists in ConnectedPlayers array
+        for (var key in ConnectedPlayers) {            
+            if (player.character_name == ConnectedPlayers[key]) {
+                connectMatch = true;
             }
         }
-
-        // add player badge
-        if ($(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").length == 0) {
-            $.ajax({
-                type: "GET",
-                url: "templates/badge.livemap.php",
-                data: {
-                    // send player data
-                    CSteamID: val.CSteamID,
-                    CharacterName: val.character_name,
-                    Reputation: returnReputation(val.reputation),
-                    Avatar: val.steam_avatar_medium,
-                    BadgeColor: returnPlayerType(val),
-                    TypeIcon: returnPlayerBadgeTypeIcon(val)
-                },
-                success: function(data) {
-                    // process returned data
-                    $(".livemap[data-server-id='" + val.server_id + "'] .livemap-badges-container " + ($("#mCSB_2_container").length == 0 ? "" : "#mCSB_2_container")).append(data);
-                    $(".livemap-badge-container[data-steam-id='" + val.CSteamID + "']").velocity("transition.flipYIn", { stagger: 300 });
-                },
-                error: function(e) {
-                    console.log(e);
-                }
-            });
+        // if no match was found, this player has connected
+        if (!connectMatch) {
+            PlayerConnected(player,data.livemap_server[0]); // create new player
         }
-        else
-        {
-            // update player badge
-        }
+        connectMatch = false; // reset
     })
 
+    /* check if player disconnected */
+    for (var key in ConnectedPlayers) {
+        // check if player exists in latest refresh
+        jQuery.each(data.livemap_data, function(index, player) {
+            if (key == player.CSteamID) {
+                disconnectMatch = true;
+            }
+        })
+        // if no match was found, this player has disconnected
+        if (!disconnectMatch) {
+            PlayerDisconnected(data.livemap_server[0].server_id,key,ConnectedPlayers[key]); // remove player
+        }
+        disconnectMatch = false; // reset
+    }
 }
 
 /**
- * Update World Chat
+ * PLAYER CONNECTED
+ * 
+ * This function generates new player elements when a player connects to a
+ * server. It adds then to the ConnectedPlayers object and announces the new
+ * connection in the associated server's world chat.
+ * @param {obj} player_data Returned player data
+ * @param {obj} livemap_server Returned server data
+ */
+function PlayerConnected(player_data,livemap_server) {
+    // add player to connected player array
+    ConnectedPlayers[player_data.CSteamID] = player_data.character_name;
+    // add player elements
+    AddPlayerBadge(player_data);
+    AddPlayerNode(player_data,livemap_server);
+    // notify chat that player connected
+    ChatWorld(player_data.server_id, "Server", player_data.character_name + " has connected!", "lime");
+}
+
+/**
+ * PLAYER DISCONNECTED
+ * 
+ * This function removes all player elements when a player disconnects from a
+ * server. It removes the player from the ConnectedPlayers object and announces
+ * the new connection in the associated server's world chat.
+ * @param {string} server_id // Server instance name
+ * @param {string} steam_id // Disconnecting player CSteamID
+ * @param {string} character_name // Disconnecting player name
+ */
+function PlayerDisconnected(server_id,steam_id,character_name) {
+    // remove player elements
+    RemovePlayerBadge(steam_id);
+    RemovePlayerNode(steam_id);
+    
+    // remove player to connected player array
+    delete ConnectedPlayers[steam_id];
+
+    //var index = ConnectedPlayers.indexOf(steam_id);
+    //if (index > -1) { ConnectedPlayers.splice(index, 1); }
+
+    // notify chat that player disconnected
+    ChatWorld(server_id, "Server", character_name + " has disconnected!", "red");
+}
+
+/**
+ * UPDATE LIVEMAP HUD DATA
+ * 
+ * This function updates the HUD data with the most recent, as well as updating
+ * the (name)badge column's player online count.
+ * @param {obj} livemap_server Returned JSON server data
+ */
+function UpdateLivemapHUD(livemap_server) {
+    // update badges online player count
+    $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-badges-online-players span.player-count").html(returnOnlinePlayerCountString(livemap_server));
+    // update hud online player count
+    $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-hud-online-players").html(returnOnlinePlayerCountString(livemap_server));
+}
+
+/**
+ * UPDATE PLAYER NODES
+ * 
+ * This function iterates through the returned livemap_data (player data) from 
+ * the most recent livemap refresh, and then updates each player node position
+ * and details (color, icon, grouping, etc.)
+ * @param {obj} livemap_server Returned JSON server data
+ * @param {obj} livemap_data Returned JSON player data
+ */
+function UpdatePlayerNodes(livemap_server,livemap_data) {
+    jQuery.each(livemap_data, function(i, val) {
+        // update player node face
+        $(".livemap-node-container[data-steam-id='" + val.CSteamID + "'] img.livemap-node").attr("src", "images/nodes/faces/"+ returnNodeFace(val) +".png");
+
+        // calculate new player position
+        var calcPos = CalculateVectorPosition(val.server_id, livemap_server.map, val.position);
+
+        // animate player node to new position
+        $(".livemap-node-container[data-steam-id='" + val.CSteamID + "']").velocity({
+            left: calcPos[0],
+            bottom: calcPos[1]
+        },
+        {
+            duration: RefreshInterval, 
+            easing: "linear"
+        });
+    })
+}
+
+function AddPlayerNode(player_data,livemap_server) {
+    $.ajax({
+        type: "GET",
+        url: "templates/node.livemap.php",
+        data: {
+            // send player data
+            CSteamID: player_data.CSteamID,
+            CharacterName: player_data.character_name,
+            Position: returnNodePositionStyle(livemap_server.server_id, livemap_server.map, player_data.position),
+            Face: returnNodeFace(player_data)
+        },
+        success: function(data) {
+            // process returned data
+            $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-nodes").append(data);
+            $(".livemap-node-container[data-steam-id='" + player_data.CSteamID + "']").velocity("transition.bounceDownIn", { stagger: 1000 });
+        },
+        error: function(e) {
+            console.log(e);
+        }
+    });
+}
+function RemovePlayerNode(steam_id) {
+    $(".livemap-node-container[data-steam-id='" + steam_id + "']").hide();
+}
+
+/**
+ * UPDATE PLAYER BADGES
+ * 
+ * This function iterates through returned livemap_data (player data) from 
+ * the most recent livemap refresh, then updates each player badge accordingly
+ * @param {obj} livemap_data Returned JSON player data
+ */
+function UpdatePlayerBadges(livemap_data) {
+    jQuery.each(livemap_data, function(index, player) {
+        // update badge opacity if player is hidden or vanished
+        if (player.is_hidden == "1" && !$(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").hasClass("is_hidden")) {
+            // hide the player badge and node
+            $(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").addClass("is_hidden");
+            $(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").velocity("transition.livemapBadgeHideIn", { stagger: 300 });
+            $(".livemap-node-container[data-steam-id='" + player.CSteamID + "']").velocity("transition.whirlOut", { stagger: 1000 });
+            // notify world chat
+            ChatWorld(player.server_id, "Server", player.character_name + " has hidden from the Livemap!", "yellow");
+        }
+        else if (player.is_hidden == "0" && $(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").hasClass("is_hidden")) {
+            // unhide the player
+            $(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").removeClass("is_hidden");
+            $(".livemap[data-server-id='" + player.server_id + "'] .livemap-badge-container[data-steam-id='" + player.CSteamID + "']").velocity("transition.livemapBadgeUnhideIn", { stagger: 300 });
+            $(".livemap-node-container[data-steam-id='" + player.CSteamID + "']").velocity("transition.whirlIn", { stagger: 1000 });
+            // notify world chat
+            ChatWorld(player.server_id, "Server", player.character_name + " has unhidden from the Livemap!", "yellow");
+        }
+    })
+}
+
+/**
+ * ADD PLAYER BADGE
+ * 
+ * This function passes a subset of player data to a badge template via AJAX
+ * which returns a player populated (name)badge element, which is appended to
+ * .livemap-badges container element
+ * @param {obj} player_data Returned JSON player data
+ */
+function AddPlayerBadge(player_data) {
+    $.ajax({
+        type: "GET",
+        url: "templates/badge.livemap.php",
+        data: {
+            // send player data
+            CSteamID: player_data.CSteamID,
+            CharacterName: player_data.character_name,
+            Reputation: returnPlayerBadgeReputationString(player_data.reputation),
+            Avatar: player_data.steam_avatar_medium,
+            BadgeColor: returnPlayerType(player_data),
+            TypeIcon: returnPlayerBadgeTypeIcon(player_data)
+        },
+        success: function(data) {
+            $(".livemap[data-server-id='" + player_data.server_id + "'] .livemap-badges-container").append(data);
+            $(".livemap[data-server-id='" + player_data.server_id + "'] .livemap-badge-container[data-steam-id='" + player_data.CSteamID + "']").velocity("transition.flipYIn", { stagger: 300 });
+        },
+        error: function(e) {
+            console.log(e);
+        }
+    });
+}
+function RemovePlayerBadge(steam_id) {
+    $(".livemap-badge-container[data-steam-id='" + steam_id + "']").hide();
+}
+
+/**
+ * UPDATE WORLD CHAT
  * 
  * This function updates world chat by sending a request to the API and then
- * appending the chat window with the newest chat data.
+ * appending the chat window with the newest chat data
  * @param {object} livemap_chat Livemap chat data
+ * @param {object} livemap_server Livemap server data
  */
 function UpdateWorldChat(livemap_chat = null, livemap_server) {
-    if (LastWorldChatID > 0) {
-        $.ajax({
-            dataType: "json",
-            type: "GET",
-            url: "api/livemap.api.php",
-            data: {
-                livemap: livemap_server.server_id,
-                filter: "livemap_chat"
-            },
-            success: function(data) {
-                var newestMsgID = 0;
-                jQuery.each(data.livemap_chat, function(i, val) {
-                    if (val.id > LastWorldChatID) {
-                        var CharacterName = val.character_name;
-                        var Avatar = val.steam_avatar_medium;
-                        var Message = val.message;
-                        var IsAdmin = val.is_admin;
+    // if `server_id` key does not exist, create it
+    if (!(livemap_server.server_id in LastWorldChatID)) {
+        LastWorldChatID[livemap_server.server_id] = 0;
+    }
 
-                        // create new message
-                        var data = '<div class="media" id="msg' + val.id + '"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
-                        $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat #mCSB_1_container").prepend(data);
-                        $("#msg" + val.id).velocity("transition.perspectiveUpIn", { stagger: 300 });
-                    }
+    // check if chat is empty
+    if (livemap_chat !== null)
+    {
+        if (LastWorldChatID[livemap_server.server_id] > 0) {
+            $.ajax({
+                dataType: "json",
+                type: "GET",
+                url: "api/livemap.api.php",
+                data: {
+                    livemap: livemap_server.server_id,
+                    filter: "livemap_chat"
+                },
+                success: function(data) {
+                    var newestMsgID = 0;
+                    jQuery.each(data.livemap_chat, function(i, val) {
+                        // show chat if it's hidden
+                        if ($(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").hasClass("hidden")) {
+                            $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").removeClass("hidden");
+                        }
 
-                    if (newestMsgID < val.id) { newestMsgID = val.id; }
-                });
+                        // generate new message
+                        if (val.id > LastWorldChatID[livemap_server.server_id]) {
 
-                LastWorldChatID = newestMsgID;
-            },
-            error: function(e) {
-                console.log(e);
-            }
-        });
+                            var CharacterName = val.character_name;
+                            var Avatar = val.steam_avatar_medium;
+                            var Message = val.message;
+                            var IsAdmin = val.is_admin;
+
+                            // create new message
+                            var data = '<div class="media" id="msg' + val.id + '"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+                            $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
+                            
+                            // scroll to bottom of chat
+                            updateWorldChatScroll(val.server_id);
+
+                            // animate new message
+                            $("#msg" + val.id).velocity("transition.perspectiveUpIn", { stagger: 300 });
+                        }
+
+                        if (newestMsgID < val.id) { newestMsgID = val.id; }
+                    });
+
+                    LastWorldChatID[livemap_server.server_id] = newestMsgID;
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        }
+        else
+        {
+            // initial page load
+            jQuery.each(livemap_chat, function(i, val) {
+                var CharacterName = val.character_name;
+                var Avatar = val.steam_avatar_medium;
+                var Message = val.message;
+                var IsAdmin = val.is_admin;
+
+                // create new message
+                var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
+                $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").prepend(data);
+                
+                // scroll to bottom of chat
+                updateWorldChatScroll(val.server_id);
+                
+                if (LastWorldChatID[livemap_server.server_id] == 0) {
+                    LastWorldChatID[livemap_server.server_id] = val.id;
+                }            
+            });
+        }
     }
     else
     {
-        // initial page load
-        jQuery.each(livemap_chat, function(i, val) {
-            var CharacterName = val.character_name;
-            var Avatar = val.steam_avatar_medium;
-            var Message = val.message;
-            var IsAdmin = val.is_admin;
-
-            // create new message
-            var data = '<div class="media"><div class="media-left"><img class="media-object" src="'+ Avatar +'" alt=""></div><div class="media-body"><p class="'+ (IsAdmin == 1 ? "admin" : "") +'">[World] '+ CharacterName +': '+ Message +'</p></div></div>';
-            $(".livemap[data-server-id='" + val.server_id + "'] .livemap-chat").append(data);
-            
-            if (LastWorldChatID == 0) {
-                LastWorldChatID = val.id;
-            }            
-        });
+        // chat is empty, hide it
+        $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-chat").addClass("hidden");
     }
     
+    // div is draggable
+    $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-chat").draggable();
 }
 
 /**
- * Convert Vector3 to Pixels
+ * SEND MESSAGE TO WORLD CHAT
+ * 
+ * This function allows for sending chat messages to a specific world chat
+ * overlay. If no color option is passed, it defaults to "lime"
+ * @param {string} server_id // Server instance name
+ * @param {string} name // Name of sender
+ * @param {string} message // Message text
+ * @param {string} color // Optional color of message
+ */
+function ChatWorld(server_id,name,message,color=null) {
+    var data = '<div class="media" id="msgSYSTEM"><div class="media-left"><img class="media-object" src="images/avatars/server.jpg" alt=""></div><div class="media-body"><p style="font-weight:bold;color:'+ (color == null ? "lime" : color) +'">[World] ' + name + ': ' + message +'</p></div></div>';
+    $(".livemap[data-server-id='" + server_id + "'] .livemap-chat").append(data);
+    // scroll to bottom of chat
+    updateWorldChatScroll(server_id);
+}
+
+/**
+ * This function updates a targeted world chat overlay scroll bar, and forces
+ * it to scroll to the bottom of the container
+ * @param {string} server_id 
+ */
+function updateWorldChatScroll(server_id){
+    var livemapChatScroll = $(".livemap[data-server-id='" + server_id + "'] .livemap-chat");
+    $(livemapChatScroll).scrollTop($(livemapChatScroll)[0].scrollHeight);
+}
+
+/**
+ * CONVERT VECTOR3 TO PIXEL COORDINATES
  * 
  * This function converts player vector3 position data into a
  * location on the livemap
@@ -338,7 +497,7 @@ function CalculateVectorPosition(server_id,map,vector3) {
     /**
      * this offset is needed due to the difference between map
      * dimensions and player constraints. i.e. washington is set to
-     * 2048+2048, total = 4096, but map bounds stop players at
+     * 2048x2048, total = 4096, but map bounds stop players at
      * 1983.5 on all four sides of the map. 1983.5 * 2 = 3967, so...
      * offset calculation (washington): 4096 - (1983.5 * 2) = 129 
      */
@@ -366,10 +525,12 @@ function CalculateVectorPosition(server_id,map,vector3) {
 }
 
 /**
+ * RETURN PLAYER NODE POSITIONING CSS STRING
+ * 
  * this function returns a css formatted string for a player node
  * position and is applied to 'node.livemap.php'
- * @param string server_id Server identifier
- * @param string Vector3 position data
+ * @param {string} server_id Server identifier
+ * @param {string} Vector3 position data
  */
 function returnNodePositionStyle(server_id,map,vector3) {
     // get the player position
@@ -378,34 +539,110 @@ function returnNodePositionStyle(server_id,map,vector3) {
     return "left:" + vector[0] + "px;bottom:" + vector[1] + "px";
 }
 
-function returnReputation(rep) {
-    // neutral reputation
-    if (rep == 0) {
-        return "Neutral [" + rep + "]";
-    // positive reputation
-    } else if (rep >= 1 && rep <= 7) {
-        return "Vigilante [" + rep + "]";
-    } else if (rep >= 8 && rep <= 32) {
-        return "Constable [" + rep + "]";
-    } else if (rep >= 33 && rep <= 99) {
-        return "Deputy [" + rep + "]";
-    } else if (rep >= 100 && rep <= 199) {
-        return "Sheriff [" + rep + "]";
-    } else if (rep >= 200) {
-        return "Paragon [" + rep + "]";
-    // negative reputation
-    } else if (rep <= -1 && rep >= -7) {
-        return "Thug [" + rep + "]";
-    } else if (rep <= -8 && rep >= -32) {
-        return "Outlaw [" + rep + "]";
-    } else if (rep <= -33 && rep >= -99) {
-        return "Gangster [" + rep + "]";
-    } else if (rep <= -100 && rep >= -199) {
-        return "Bandit [" + rep + "]";
-    } else if (rep <= -200) {
-        return "Villain [" + rep + "]";
+/**
+ * RETURN PLAYER NODE FACE
+ * 
+ * This function returns the player face id. By default, unchanged faces return
+ * as '255', so these are defaulted to 1
+ * @param {obj} player_data 
+ */
+function returnNodeFace(player_data) {
+    if (player_data.face == "255") {
+        return "1";
+    } else {
+        return parseInt(player_data.face) + 1;
     }
 }
+
+/**
+ * RETURN PLAYER BADGE REPUTATION STRING
+ * 
+ * This function returns a formatted string containing a player's reputation 
+ * level name, and reputation integer (i.e. "Villain [-2560]")
+ * @param {int} reputation Player reputation integer
+ */
+function returnPlayerBadgeReputationString(reputation) {
+    // neutral reputation
+    if (reputation == 0) {
+        return "Neutral [" + reputation + "]";
+    // positive reputation
+    } else if (reputation >= 1 && reputation <= 7) {
+        return "Vigilante [" + reputation + "]";
+    } else if (reputation >= 8 && reputation <= 32) {
+        return "Constable [" + reputation + "]";
+    } else if (reputation >= 33 && reputation <= 99) {
+        return "Deputy [" + reputation + "]";
+    } else if (reputation >= 100 && reputation <= 199) {
+        return "Sheriff [" + reputation + "]";
+    } else if (reputation >= 200) {
+        return "Paragon [" + reputation + "]";
+    // negative reputation
+    } else if (reputation <= -1 && reputation >= -7) {
+        return "Thug [" + reputation + "]";
+    } else if (reputation <= -8 && reputation >= -32) {
+        return "Outlaw [" + reputation + "]";
+    } else if (reputation <= -33 && reputation >= -99) {
+        return "Gangster [" + reputation + "]";
+    } else if (reputation <= -100 && reputation >= -199) {
+        return "Bandit [" + reputation + "]";
+    } else if (reputation <= -200) {
+        return "Villain [" + reputation + "]";
+    }
+}
+
+/**
+ * RETURN ONLINE PLAYER COUNT STRING
+ * 
+ * This function returns a string containing the current online player count / 
+ * max player count [i.e. "16/24"] of the livemap_server that is passed.
+ * @param {obj} livemap_server Returned JSON server data
+ */
+function returnOnlinePlayerCountString(livemap_server) {
+    return livemap_server.online_players + "/" + livemap_server.max_players;
+}
+
+function returnPlayerType(player) {
+    if (player.is_admin == 1) {
+        return "admin";
+    } else if (player.is_pro == 1) {
+        return "gold";
+    } else if (player.in_vehicle == 1) {
+        return "vehicle";
+    } else {
+        return "normal";
+    }
+}
+
+function returnPlayerBadgeTypeIcon(player) {
+    if (player.is_admin == 1) {
+        return "admin";
+    } else if (player.is_pro == 1) {
+        return "gold";
+    }
+}
+
+/**
+ * Custom Velocity.js Transitions
+ * 
+ * This codeblock contains custom Velocity.js transitions used to animate
+ * player (name)badges and node icons.
+ */
+$.Velocity.RegisterUI("transition.livemapBadgeHideIn", {
+    defaultDuration: 3000,
+    calls: [
+        [ { scaleX: [1, 0.625], scaleY: [1, 0.625], translateZ: 0 }, 0.1, { easing: "spring" } ],
+        [ { rotateX: -45 }, 0.25, { easing: "spring" } ],
+        [ { opacity: [0.2, 1], rotateX: 1080 }, 0.25, { easing: "spring" } ]
+    ]
+});
+$.Velocity.RegisterUI("transition.livemapBadgeUnhideIn", {
+    defaultDuration: 3000,
+    calls: [
+        [ { scaleX: [1, 0.625], scaleY: [1, 0.625], translateZ: 0 }, 0.1, { easing: "spring" } ],
+        [ { rotateX: 90 }, 0.25, { easing: "spring" } ],
+        [ { opacity: [1, 0.2], rotateX: -1080 }, 0.25, { easing: "spring" } ]
+    ]
+});
 
 // show loading screen during ajax requests
 $(document).on({
@@ -414,21 +651,12 @@ $(document).on({
     },
     ajaxStop: function() { 
         $(".livemap-loading").addClass("hidden"); 
-
-        $(".livemap-chat").mCustomScrollbar({advanced:{
-            autoExpandHorizontalScroll:false,
-            updateOnContentResize: true
-        }});
-        $(".livemap-badges-container").mCustomScrollbar({advanced:{
-            autoExpandHorizontalScroll:false,
-            updateOnContentResize: true
-        }});
     }
 });
 
-$(document).ready(function() {
-    init();
+$(document).ready(function() {    
+    init(); // initiate the livemaps
 
     // set refresh interval
-    setInterval(TriggerLivemapRefresh, 15000);
+    setInterval(TriggerLivemapRefresh, RefreshInterval);
 });

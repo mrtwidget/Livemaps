@@ -37,11 +37,15 @@ a:hover {color: whitesmoke; text-decoration: none }
     background: rgba(0,0,0,0.4);
     color: white;
     text-align: center;
+    max-height: 755px;
     overflow: hidden;
 }
 
     /* livemap map */
-    .livemap-map { position: relative }
+    .livemap-map { 
+        position: relative;
+        overflow: hidden;
+    }
 
     /* livemap loading */
     .livemap-loading {
@@ -86,11 +90,10 @@ a:hover {color: whitesmoke; text-decoration: none }
             /* width: 16px; height: auto; */
         }
 
-
     /* player badges */
     .livemap-badges-container {
-        max-height: 600px;
-        overflow: auto;
+        max-height: 690px;
+        overflow-y: auto;
     }
     .livemap-badge-container { max-height: 46px }
     .livemap-badge-container:hover { outline: 1px solid #aaa; cursor: pointer }
@@ -145,7 +148,7 @@ a:hover {color: whitesmoke; text-decoration: none }
             top: 1em; left: 1em;
         }
 
-        .livemap-hud .livemap-hud-online {
+        .livemap-hud .livemap-hud-online-players {
             position: absolute;
             top: 1em; right: 1em;
         }
@@ -158,13 +161,14 @@ a:hover {color: whitesmoke; text-decoration: none }
         padding: 0.5em;
         max-height: 8em;
         overflow: auto;
-        width: 60%;
+        max-width: 60%;
         z-index: 9999;
         background: rgba(0,0,0,0.3);
         border-radius: 4px;
         margin-left: 1em;
     }
 
+    .livemap-chat:hover { cursor: move }
         .livemap-chat img { width: 14px; height: auto }
         .livemap-chat p { font-size: 10px; margin: 0 }
             .livemap-chat .admin { color: cyan }
