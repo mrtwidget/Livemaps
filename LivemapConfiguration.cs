@@ -24,7 +24,7 @@ namespace NEXIS.Livemap
         public void LoadDefaults()
         {
             // General Settings
-            LivemapRefreshInterval = 15;
+            LivemapRefreshInterval = 10;
             WorldChatEnabled = true;
             PlayerHideEnabled = true;
             PlayerHideCooldownEnabled = true;

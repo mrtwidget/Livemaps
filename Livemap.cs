@@ -21,12 +21,14 @@ namespace NEXIS.Livemap
 
         // last refresh timestamp
         public DateTime? LastRefresh = null;
-        // <Steam64ID, CharacterName>
+        // Online Players <Steam64ID, CharacterName>
         public static Dictionary<CSteamID, string> PlayersOnline = new Dictionary<CSteamID, string>();
-        // <Steam64ID, DateTime>
+        // Hidden Players <Steam64ID, DateTime>
         public static Dictionary<CSteamID, DateTime?> PlayersHidden = new Dictionary<CSteamID, DateTime?>();
-        // <Steam64ID, DateTime>
+        // Hide Cooldown <Steam64ID, DateTime>
         public static Dictionary<CSteamID, DateTime?> PlayersHiddenCooldown = new Dictionary<CSteamID, DateTime?>();
+        // Player Hide Duration <Steam64ID, DateTime>
+        public static Dictionary<CSteamID, double> PlayersHiddenDuration = new Dictionary<CSteamID, double>();
 
         protected override void Load()
         {
@@ -36,10 +38,8 @@ namespace NEXIS.Livemap
             U.Events.OnPlayerConnected += Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected += Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead += Events_OnPlayerDead;
-            UnturnedPlayerEvents.OnPlayerDeath += Events_OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerRevive += Events_OnPlayerRevive;
             UnturnedPlayerEvents.OnPlayerChatted += Events_OnPlayerChatted;
-            UnturnedPlayerEvents.OnPlayerUpdateExperience += Events_OnPlayerUpdateExperience;
 
             Logger.Log("Livemaps successfully loaded!", ConsoleColor.Green);
         }
@@ -47,15 +47,13 @@ namespace NEXIS.Livemap
         protected override void Unload()
         {
             // update all player `last_disconnect` columns
-            Livemap.Instance.Database.Unload();
+            Livemap.Instance.Database.CleanUp();
 
             U.Events.OnPlayerConnected -= Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead -= Events_OnPlayerDead;
-            UnturnedPlayerEvents.OnPlayerDeath -= Events_OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerRevive -= Events_OnPlayerRevive;
             UnturnedPlayerEvents.OnPlayerChatted -= Events_OnPlayerChatted;
-            UnturnedPlayerEvents.OnPlayerUpdateExperience -= Events_OnPlayerUpdateExperience;
 
             Logger.Log("Livemaps successfully unloaded!", ConsoleColor.Green);
         }
@@ -76,19 +74,15 @@ namespace NEXIS.Livemap
         {
             if (this.State == PluginState.Loaded) {
 
-                /* Request API Update */
+                /* Update Database */
                 if (Livemap.Instance.LastRefresh == null || (DateTime.Now - this.LastRefresh.Value).TotalSeconds > Livemap.Instance.Configuration.Instance.LivemapRefreshInterval)
                 {
-                    // refresh server data
-                    Livemap.Instance.Database.RefreshServer();
+                    // refresh server database data
+                    Livemap.Instance.Database.UpdateServerData();
 
-                    // loop through each player and update the database
-                    foreach (SteamPlayer player in Provider.clients)
-                    {
-                        // refresh player data
-                        if (player == null) { continue; }
-                        Livemap.Instance.Database.RefreshPlayer(UnturnedPlayer.FromSteamPlayer(player));
-                    }
+                    // update each connected player in the database
+                    Livemap.Instance.Database.UpdateAllPlayers();
+
                     // update refresh timestamp
                     Livemap.Instance.LastRefresh = DateTime.Now;
                 }
@@ -106,7 +100,6 @@ namespace NEXIS.Livemap
                             // remove player cooldown
                             Livemap.PlayersHiddenCooldown.Remove(cooldownPlr.Key);
 
-                            // notify player
                             UnturnedChat.Say(UnturnedPlayer.FromCSteamID(cooldownPlr.Key), Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_end"));
                         }
                     }
@@ -124,7 +117,6 @@ namespace NEXIS.Livemap
                             // unhide player
                             Livemap.PlayersHidden.Remove(hiddenPlr.Key);
 
-                            // notify player
                             UnturnedChat.Say(UnturnedPlayer.FromCSteamID(hiddenPlr.Key), Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_start", Livemap.Instance.Configuration.Instance.PlayerHideCooldownDuration + " seconds"));
                         }
                     }
@@ -137,14 +129,14 @@ namespace NEXIS.Livemap
             get
             {
                 return new TranslationList() {
-                    {"livemap_command_usage", "Usage: Type /livemap to toggle hiding"},
-                    {"livemap_hidden_disabled", "Livemap hiding has been disabled! :("},
-                    {"livemap_hidden_true", "Your location will be hidden on the Livemap for the next {0}!"},
+                    {"livemap_command_usage", "Usage: Type: /livemap to toggle hiding yourself from the Livemap."},
+                    {"livemap_hidden_disabled", "Livemap hiding is currently disabled! :("},
+                    {"livemap_hidden_true", "Your location is hidden on the Livemap for the next {0}!"},
                     {"livemap_hidden_false", "Your location is now visible to anyone on the Livemap!"},
-                    {"livemap_hidden_cooldown", "You must wait {0} before you can hide your location again!"},
-                    {"livemap_hidden_cooldown_end", "Livemap cooldown expired! You can hide your location again!"},
+                    {"livemap_hidden_cooldown", "You must wait {0} before you can hide your location on the Livemap again!"},
+                    {"livemap_hidden_cooldown_end", "Livemap cooldown expired! You can hide your location again!!"},
                     {"livemap_hidden_cooldown_start", "Livemap hiding expired! You must wait {0} to hide again!"},
-                    {"livemap_hidden_cooldown_remaining", "Cooldown active! You must wait {0} before you can hide again!"}
+                    {"livemap_hidden_cooldown_remaining", "You must wait {0} before you can hide yourself on the Livemap again!"}
                 };
             }
         }
@@ -152,7 +144,7 @@ namespace NEXIS.Livemap
         /* Player Connected */
         public void Events_OnPlayerConnected(UnturnedPlayer player)
         {
-            // update player database row
+            // update player data
             Livemap.Instance.Database.OnPlayerConnected(player);
         }
 
@@ -171,7 +163,7 @@ namespace NEXIS.Livemap
                 Livemap.PlayersHiddenCooldown.Remove(player.CSteamID);
             }
 
-            // update player database row
+            // update player `last_disconnect`
             Livemap.Instance.Database.OnPlayerDisconnected(player);
         }
 
@@ -181,15 +173,9 @@ namespace NEXIS.Livemap
             Livemap.Instance.Database.OnPlayerDead(player, position);
         }
 
-        public void Events_OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
-        {
-            // save kill data
-            //Livemap.Instance.Database.OnPlayerDeath(player, cause, limb, murderer);
-        }
-
         public void Events_OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle)
         {
-            // player respawned
+            // player respawned, update dead status
             Livemap.Instance.Database.OnPlayerRevive(player, position, angle);
         }
 
@@ -197,12 +183,6 @@ namespace NEXIS.Livemap
         {
             // save world chat
             Livemap.Instance.Database.OnPlayerChatted(player, ref color, message, chatMode);
-        }
-
-        public void Events_OnPlayerUpdateExperience(UnturnedPlayer player, uint experience)
-        {
-            // player reputation increased
-            Livemap.Instance.Database.OnPlayerUpdateExperience(player, experience);
         }
 
     }

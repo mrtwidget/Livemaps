@@ -4,14 +4,14 @@ using Rocket.Unturned.Skills;
 using SDG.Unturned;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using Steamworks;
 using UnityEngine;
 
 namespace NEXIS.Livemap
 {
     public class DatabaseManager
     {
+        MySqlConnection MySQLConnection = null;
+
         /**
          * Construct Class
          * 
@@ -20,27 +20,27 @@ namespace NEXIS.Livemap
         public DatabaseManager()
         {
             new I18N.West.CP1250();
+            MySQLConnection = CreateConnection();
+            MySQLConnection.Open();
             CheckSchema();
         }
 
         /**
          * Check Schema / Create Database Tables
          * 
-         * This function checks if the required database tables already exist in the database and creates
+         * This function checks if the required database tables already exist 
+         * in the database and creates
          * them if they do not already exist.
          */
         public void CheckSchema()
         {
-            /* `livemap_server` table */
+            /* `livemap_server` */
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if the table exists
                 MySQLCommand.CommandText = "SHOW TABLES LIKE '" + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + "'";
-                MySQLConnection.Open();
-
                 object result = MySQLCommand.ExecuteScalar();
 
                 if (result == null)
@@ -66,28 +66,25 @@ namespace NEXIS.Livemap
                     "packets_sent INT(10) NULL," +
                     "port INT(8) NULL," +
                     "mode VARCHAR(32) NULL," +
+                    "refresh_interval INT(10) NOT NULL DEFAULT 10," +
                     "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(server_id));";
 
                     MySQLCommand.ExecuteNonQuery();
                 }
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
                 Logger.LogException(ex);
             }
 
-            /* `livemap_data` table */
+            /* `livemap_data` */
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if the table exists
                 MySQLCommand.CommandText = "SHOW TABLES LIKE '" + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + "'";
-                MySQLConnection.Open();
-
                 object result = MySQLCommand.ExecuteScalar();
 
                 if (result == null)
@@ -165,27 +162,24 @@ namespace NEXIS.Livemap
                     "is_hidden TINYINT(1) DEFAULT 0," +
                     "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
                     "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                    "last_disconnect TIMESTAMP NULL," +
+                    "last_disconnect TIMESTAMP," +
                     "PRIMARY KEY(CSteamID));";
+
                     MySQLCommand.ExecuteNonQuery();
                 }
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
                 Logger.LogException(ex);
             }
             
-            /* `livemap_chat` table */
+            /* `livemap_chat` */
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if the table exists
                 MySQLCommand.CommandText = "SHOW TABLES LIKE '" + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat + "'";
-                MySQLConnection.Open();
-
                 object result = MySQLCommand.ExecuteScalar();
 
                 if (result == null)
@@ -201,7 +195,6 @@ namespace NEXIS.Livemap
 
                     MySQLCommand.ExecuteNonQuery();
                 }
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
@@ -209,11 +202,14 @@ namespace NEXIS.Livemap
             }
         }
 
-        /* mysql data connection */
+        /**
+         * MySQL Database Connection
+         * 
+         * This function creates a connection to a mysql database, for use with
+         * queries required in this file.
+         */
         private MySqlConnection CreateConnection()
         {
-            MySqlConnection MySQLConnection = null;
-
             try
             {
                 if (Livemap.Instance.Configuration.Instance.DatabasePort == 0)
@@ -236,73 +232,55 @@ namespace NEXIS.Livemap
             return MySQLConnection;
         }
 
-        public void RefreshServer()
+        /**
+         * Refresh Server Data
+         * 
+         * This function updates all server data in the livemap+server table
+         * with the most current information.
+         */
+        public void UpdateServerData()
         {
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // check if server exists in table
                 MySQLCommand.CommandText = "SELECT * FROM " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " WHERE server_id = '" + Provider.serverID + "'";
-                MySQLConnection.Open();
-
                 object result = MySQLCommand.ExecuteScalar();
 
                 if (result == null)
                 {
-                    // server does not exist, create it
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " (server_id,server_name,app_version,map,online_players,max_players,is_pvp,is_gold,is_pro,has_cheats,hide_admins,cycle_time,cycle_length,full_moon,uptime,packets_received,packets_sent,port,mode) VALUES (" +
-                        "'" + Provider.serverID + "'," +
-                        "'" + Provider.serverName + "'," +
-                        "'" + Provider.APP_VERSION + "'," +
-                        "'" + Provider.map + "'," +
-                        Provider.clients.Count + "," +
-                        Provider.maxPlayers + "," +
-                        Convert.ToInt32(Provider.isPvP) + "," +
-                        Convert.ToInt32(Provider.isGold) + "," +
-                        Convert.ToInt32(Provider.isPro) + "," +
-                        Convert.ToInt32(Provider.hasCheats) + "," +
-                        Convert.ToInt32(Provider.hideAdmins) + "," +
-                        LightingManager.time + "," +
-                        LightingManager.cycle + "," +
-                        Convert.ToInt32(LightingManager.isFullMoon) + "," +
-                        Time.time + "," +
-                        Provider.packetsReceived + "," +
-                        Provider.packetsSent + "," +
-                        Provider.port + "," +
-                        "'" + Provider.mode.ToString() + "'" +
-                    ")";
-
-                    MySQLCommand.ExecuteNonQuery();
+                    // server does not exist in database, create it
+                    MySQLCommand.CommandText = string.Format("INSERT INTO {0} (server_id,server_name,app_version,map,online_players,max_players,is_pvp,is_gold,is_pro,has_cheats,hide_admins,cycle_time,cycle_length,full_moon,uptime,packets_received,packets_sent,port,mode,refresh_interval) VALUES (@server_id,@server_name,@app_version,@map,@online_players,@max_players,@is_pvp,@is_gold,@is_pro,@has_cheats,@hide_admins,@cycle_time,@cycle_length,@full_moon,@uptime,@packets_received,@packets_sent,@port,@mode,@refresh_interval)", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer);
                 }
                 else
                 {
-                    // update server info
-                    MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer + " SET " +
-                    "server_name = '" + Provider.serverName + "'," +
-                    "app_version = '" + Provider.APP_VERSION + "'," +
-                    "map = '" + Provider.map + "'," +
-                    "online_players = " + Provider.clients.Count + "," +
-                    "max_players = " + Provider.maxPlayers + "," +
-                    "is_pvp = " + Convert.ToInt32(Provider.isPvP) + "," +
-                    "is_gold = " + Convert.ToInt32(Provider.isGold) + "," +
-                    "is_pro = " + Convert.ToInt32(Provider.isPro) + "," +
-                    "has_cheats = " + Convert.ToInt32(Provider.hasCheats) + "," +
-                    "hide_admins = " + Convert.ToInt32(Provider.hideAdmins) + "," +
-                    "cycle_time = " + LightingManager.time + "," +
-                    "cycle_length = " + LightingManager.cycle + "," +
-                    "full_moon = " + Convert.ToInt32(LightingManager.isFullMoon) + "," +
-                    "uptime = " + Time.time + "," +
-                    "packets_received = " + Provider.packetsReceived + "," +
-                    "packets_sent = " + Provider.packetsSent + "," +
-                    "port = " + Provider.port + "," +
-                    "mode = '" + Provider.mode.ToString() + "' " +
-                    "WHERE server_id = '" + Provider.serverID + "'";
-
-                    MySQLCommand.ExecuteNonQuery();
+                    // server already exists, update server info
+                    MySQLCommand.CommandText = string.Format("UPDATE {0} SET server_name=@server_name,app_version=@app_version,map=@map,online_players=@online_players,max_players=@max_players,is_pvp=@is_pvp,is_gold=@is_gold,is_pro=@is_pro,has_cheats=@has_cheats,hide_admins=@hide_admins,cycle_time=@cycle_time,cycle_length=@cycle_length,full_moon=@full_moon,uptime=@uptime,packets_received=@packets_received,packets_sent=@packets_sent,port=@port,mode=@mode,refresh_interval=@refresh_interval WHERE server_id=@server_id", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapServer);
                 }
-                MySQLConnection.Close();
+
+                MySQLCommand.Parameters.AddWithValue("@server_id", Provider.serverID);
+                MySQLCommand.Parameters.AddWithValue("@server_name", Provider.serverName);
+                MySQLCommand.Parameters.AddWithValue("@app_version", Provider.APP_VERSION);
+                MySQLCommand.Parameters.AddWithValue("@map", Provider.map);
+                MySQLCommand.Parameters.AddWithValue("@online_players", Provider.clients.Count);
+                MySQLCommand.Parameters.AddWithValue("@max_players", Provider.maxPlayers);
+                MySQLCommand.Parameters.AddWithValue("@is_pvp", Convert.ToInt32(Provider.isPvP));
+                MySQLCommand.Parameters.AddWithValue("@is_gold", Convert.ToInt32(Provider.isGold));
+                MySQLCommand.Parameters.AddWithValue("@is_pro", Convert.ToInt32(Provider.isPro));
+                MySQLCommand.Parameters.AddWithValue("@has_cheats", Convert.ToInt32(Provider.hasCheats));
+                MySQLCommand.Parameters.AddWithValue("@hide_admins", Convert.ToInt32(Provider.hideAdmins));
+                MySQLCommand.Parameters.AddWithValue("@cycle_time", LightingManager.time);
+                MySQLCommand.Parameters.AddWithValue("@cycle_length", LightingManager.cycle);
+                MySQLCommand.Parameters.AddWithValue("@full_moon", Convert.ToInt32(LightingManager.isFullMoon));
+                MySQLCommand.Parameters.AddWithValue("@uptime", Time.time);
+                MySQLCommand.Parameters.AddWithValue("@packets_received", Provider.packetsReceived);
+                MySQLCommand.Parameters.AddWithValue("@packets_sent", Provider.packetsSent);
+                MySQLCommand.Parameters.AddWithValue("@port", Provider.port);
+                MySQLCommand.Parameters.AddWithValue("@mode", Provider.mode.ToString());
+                MySQLCommand.Parameters.AddWithValue("@refresh_interval", Livemap.Instance.Configuration.Instance.LivemapRefreshInterval);
+
+                MySQLCommand.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -311,158 +289,120 @@ namespace NEXIS.Livemap
         }
 
         /**
+         * Update Player Database Row
+         * 
+         * This function updates the database with current player information.
+         * @param {UnturnedPlayer} player Player data
+         */
+        public void UpdatePlayer(UnturnedPlayer player)
+        {
+            MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
+
+            // check if player exists in table
+            MySQLCommand.CommandText = "SELECT * FROM " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+            object result = MySQLCommand.ExecuteScalar();
+
+            if (result == null)
+            {
+                // insert - player does not exist in database
+                MySQLCommand.CommandText = string.Format("INSERT INTO {0} (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,server_id,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded,is_hidden) VALUES (@CSteamID,@character_name,@display_name,@steam_group_id,@steam_avatar_medium,@server_id,@ip_address,@ping,@is_pro,@is_admin,@is_god,@is_vanished,@in_vehicle,@position,@rotation,@skin_color,@hair,@face,@beard,@hat,@glasses,mask,@is_bleeding,@is_broken,@health,@stamina,@hunger,@thirst,@infection,@experience,@reputation,@skill_agriculture,@skill_cardio,@skill_cooking,@skill_crafting,@skill_dexerity,@skill_diving,@skill_engineer,@skill_exercise,@skill_fishing,@skill_healing,@skill_immunity,@skill_mechanic,@skill_outdoors,@skill_overkill,@skill_parkour,@skill_sharpshooter,@skill_sneakybeaky,@skill_strength,@skill_survival,@skill_toughness,@skill_vitality,@skill_warmblooded,@is_hidden)", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData);
+            }
+            else
+            {
+                // update - player exists in database
+                MySQLCommand.CommandText = string.Format("UPDATE {0} SET character_name=@character_name,display_name=@display_name,steam_group_id=@steam_group_id,steam_avatar_medium=@steam_avatar_medium,server_id=@server_id,ip_address=@ip_address,ping=@ping,is_pro=@is_pro,is_admin=@is_admin,is_god=@is_god,is_vanished=@is_vanished,in_vehicle=@in_vehicle,vehicle_is_driver=@vehicle_is_driver,vehicle_instance_id=@vehicle_instance_id,vehicle_id=@vehicle_id,vehicle_fuel=@vehicle_fuel,vehicle_health=@vehicle_health,vehicle_headlights_on=@vehicle_headlights_on,vehicle_taillights_on=@vehicle_taillights_on,vehicle_sirens_on=@vehicle_sirens_on,vehicle_speed=@vehicle_speed,vehicle_has_battery=@vehicle_has_battery,vehicle_battery_charge=@vehicle_battery_charge,vehicle_exploded=@vehicle_exploded,vehicle_locked=@vehicle_locked,position=@position,rotation=@rotation,skin_color=@skin_color,hair=@hair,face=@face,beard=@beard,hat=@hat,glasses=@glasses,mask=@mask,is_bleeding=@is_bleeding,is_broken=@is_broken,health=@health,stamina=@stamina,hunger=@hunger,thirst=@thirst,infection=@infection,experience=@experience,reputation=@reputation,skill_agriculture=@skill_agriculture,skill_cardio=@skill_cardio,skill_cooking=@skill_cooking,skill_crafting=@skill_crafting,skill_dexerity=@skill_dexerity,skill_diving=@skill_diving,skill_engineer=@skill_engineer,skill_exercise=@skill_exercise,skill_fishing=@skill_fishing,skill_healing=@skill_healing,skill_immunity=@skill_immunity,skill_mechanic=@skill_mechanic,skill_outdoors=@skill_outdoors,skill_overkill=@skill_overkill,skill_parkour=@skill_parkour,skill_sharpshooter=@skill_sharpshooter,skill_sneakybeaky=@skill_sneakybeaky,skill_strength=@skill_strength,skill_survival=@skill_survival,skill_toughness=@skill_toughness,skill_vitality=@skill_vitality,skill_warmblooded=@skill_warmblooded,is_hidden=@is_hidden WHERE CSteamID=@CSteamID", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData);
+            }
+
+            MySQLCommand.Parameters.AddWithValue("@CSteamID", player.CSteamID.ToString());
+            MySQLCommand.Parameters.AddWithValue("@character_name", player.CharacterName);
+            MySQLCommand.Parameters.AddWithValue("@display_name", player.DisplayName);
+            MySQLCommand.Parameters.AddWithValue("@steam_group_id", (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0"));
+            MySQLCommand.Parameters.AddWithValue("@steam_avatar_medium", (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar));
+            MySQLCommand.Parameters.AddWithValue("@server_id", Provider.serverID);
+            MySQLCommand.Parameters.AddWithValue("@ip_address", player.IP.ToString());
+            MySQLCommand.Parameters.AddWithValue("@ping", player.Ping.ToString());
+            MySQLCommand.Parameters.AddWithValue("@is_pro", Convert.ToInt32(player.IsPro));
+            MySQLCommand.Parameters.AddWithValue("@is_admin", Convert.ToInt32(player.IsAdmin));
+            MySQLCommand.Parameters.AddWithValue("@is_god", Convert.ToInt32(player.GodMode));
+            MySQLCommand.Parameters.AddWithValue("@is_vanished", Convert.ToInt32(player.VanishMode));
+            MySQLCommand.Parameters.AddWithValue("@in_vehicle", Convert.ToInt32(player.IsInVehicle));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_is_driver", ReturnVehicleData(player, "vehicle_is_driver"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_instance_id", ReturnVehicleData(player, "vehicle_instance_id"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_id", ReturnVehicleData(player, "vehicle_id"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_fuel", ReturnVehicleData(player, "vehicle_fuel"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_health", ReturnVehicleData(player, "vehicle_health"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_headlights_on", ReturnVehicleData(player, "vehicle_headlights_on"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_taillights_on", ReturnVehicleData(player, "vehicle_taillights_on"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_sirens_on", ReturnVehicleData(player, "vehicle_sirens_on"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_speed", ReturnVehicleData(player, "vehicle_speed"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_has_battery", ReturnVehicleData(player, "vehicle_has_battery"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_battery_charge", ReturnVehicleData(player, "vehicle_battery_charge"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_exploded", ReturnVehicleData(player, "vehicle_exploded"));
+            MySQLCommand.Parameters.AddWithValue("@vehicle_locked", ReturnVehicleData(player, "vehicle_locked"));
+            MySQLCommand.Parameters.AddWithValue("@position", player.Position.ToString());
+            MySQLCommand.Parameters.AddWithValue("@rotation", player.Rotation.ToString());
+            MySQLCommand.Parameters.AddWithValue("@skin_color", player.Player.clothing.skin.ToString());
+            MySQLCommand.Parameters.AddWithValue("@hair", player.Player.clothing.hair);
+            MySQLCommand.Parameters.AddWithValue("@face", player.Player.clothing.face);
+            MySQLCommand.Parameters.AddWithValue("@beard", player.Player.clothing.beard);
+            MySQLCommand.Parameters.AddWithValue("@hat", player.Player.clothing.hat);
+            MySQLCommand.Parameters.AddWithValue("@glasses", player.Player.clothing.glasses);
+            MySQLCommand.Parameters.AddWithValue("@mask", player.Player.clothing.mask);
+            MySQLCommand.Parameters.AddWithValue("@is_bleeding", Convert.ToInt32(player.Bleeding));
+            MySQLCommand.Parameters.AddWithValue("@is_broken", Convert.ToInt32(player.Broken));
+            MySQLCommand.Parameters.AddWithValue("@health", player.Health);
+            MySQLCommand.Parameters.AddWithValue("@stamina", player.Stamina);
+            MySQLCommand.Parameters.AddWithValue("@hunger", player.Hunger);
+            MySQLCommand.Parameters.AddWithValue("@thirst", player.Thirst);
+            MySQLCommand.Parameters.AddWithValue("@infection", player.Infection);
+            MySQLCommand.Parameters.AddWithValue("@experience", player.Experience);
+            MySQLCommand.Parameters.AddWithValue("@reputation", player.Reputation);
+            MySQLCommand.Parameters.AddWithValue("@skill_agriculture", player.GetSkillLevel(UnturnedSkill.Agriculture));
+            MySQLCommand.Parameters.AddWithValue("@skill_cardio", player.GetSkillLevel(UnturnedSkill.Cardio));
+            MySQLCommand.Parameters.AddWithValue("@skill_cooking", player.GetSkillLevel(UnturnedSkill.Cooking));
+            MySQLCommand.Parameters.AddWithValue("@skill_crafting", player.GetSkillLevel(UnturnedSkill.Crafting));
+            MySQLCommand.Parameters.AddWithValue("@skill_dexerity", player.GetSkillLevel(UnturnedSkill.Dexerity));
+            MySQLCommand.Parameters.AddWithValue("@skill_diving", player.GetSkillLevel(UnturnedSkill.Diving));
+            MySQLCommand.Parameters.AddWithValue("@skill_engineer", player.GetSkillLevel(UnturnedSkill.Engineer));
+            MySQLCommand.Parameters.AddWithValue("@skill_exercise", player.GetSkillLevel(UnturnedSkill.Exercise));
+            MySQLCommand.Parameters.AddWithValue("@skill_fishing", player.GetSkillLevel(UnturnedSkill.Fishing));
+            MySQLCommand.Parameters.AddWithValue("@skill_healing", player.GetSkillLevel(UnturnedSkill.Healing));
+            MySQLCommand.Parameters.AddWithValue("@skill_immunity", player.GetSkillLevel(UnturnedSkill.Immunity));
+            MySQLCommand.Parameters.AddWithValue("@skill_mechanic", player.GetSkillLevel(UnturnedSkill.Mechanic));
+            MySQLCommand.Parameters.AddWithValue("@skill_outdoors", player.GetSkillLevel(UnturnedSkill.Outdoors));
+            MySQLCommand.Parameters.AddWithValue("@skill_overkill", player.GetSkillLevel(UnturnedSkill.Overkill));
+            MySQLCommand.Parameters.AddWithValue("@skill_parkour", player.GetSkillLevel(UnturnedSkill.Parkour));
+            MySQLCommand.Parameters.AddWithValue("@skill_sharpshooter", player.GetSkillLevel(UnturnedSkill.Sharpshooter));
+            MySQLCommand.Parameters.AddWithValue("@skill_sneakybeaky", player.GetSkillLevel(UnturnedSkill.Sneakybeaky));
+            MySQLCommand.Parameters.AddWithValue("@skill_strength", player.GetSkillLevel(UnturnedSkill.Strength));
+            MySQLCommand.Parameters.AddWithValue("@skill_survival", player.GetSkillLevel(UnturnedSkill.Survival));
+            MySQLCommand.Parameters.AddWithValue("@skill_toughness", player.GetSkillLevel(UnturnedSkill.Toughness));
+            MySQLCommand.Parameters.AddWithValue("@skill_vitality", player.GetSkillLevel(UnturnedSkill.Vitality));
+            MySQLCommand.Parameters.AddWithValue("@skill_warmblooded", player.GetSkillLevel(UnturnedSkill.Warmblooded));
+            MySQLCommand.Parameters.AddWithValue("@is_hidden", Livemap.Instance.IsPlayerHidden(player));
+
+            MySQLCommand.ExecuteNonQuery();
+        }
+
+        /**
          * Refresh Player Data
          * 
-         * This function collects aplayer's current stats and updates the database to reflect this change.
-         * @param UnturnedPlayer player The player that will be updated
+         * This function collects aplayer's current stats and updates the 
+         * database to reflect this change.
          */
-        public void RefreshPlayer(UnturnedPlayer player)
+        public void UpdateAllPlayers()
         {
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
-                MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
-
-                // check if player exists in table
-                MySQLCommand.CommandText = "SELECT * FROM " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
-                object result = MySQLCommand.ExecuteScalar();
-
-                if (result == null)
+                // loop through each connected player
+                foreach (SteamPlayer plr in Provider.clients)
                 {
-                    // player does not exist, create it
-                    MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " (CSteamID,character_name,display_name,steam_group_id,steam_avatar_medium,server_id,ip_address,ping,is_pro,is_admin,is_god,is_vanished,in_vehicle,position,rotation,skin_color,hair,face,beard,hat,glasses,mask,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,skill_agriculture,skill_cardio,skill_cooking,skill_crafting,skill_dexerity,skill_diving,skill_engineer,skill_exercise,skill_fishing,skill_healing,skill_immunity,skill_mechanic,skill_outdoors,skill_overkill,skill_parkour,skill_sharpshooter,skill_sneakybeaky,skill_strength,skill_survival,skill_toughness,skill_vitality,skill_warmblooded,is_hidden) VALUES (" +
-                    "'" + player.CSteamID.ToString() + "'," +
-                    "'" + player.CharacterName.ToString() + "'," +
-                    "'" + player.DisplayName.ToString() + "'," +
-                    "'" + (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0") + "'," +
-                    "'" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar) + "'," +
-                    "'" + Provider.serverID + "'," +
-                    "'" + player.IP.ToString() + "'," +
-                    "'" + player.Ping.ToString() + "'," +
-                    Convert.ToInt32(player.IsPro) + "," +
-                    Convert.ToInt32(player.IsAdmin) + "," +
-                    Convert.ToInt32(player.GodMode) + "," +
-                    Convert.ToInt32(player.VanishMode) + "," +
-                    Convert.ToInt32(player.IsInVehicle) + "," +
-                    "'" + player.Position.ToString() + "'," +
-                    "'" + player.Rotation.ToString() + "'," +
-                    "'" + player.Player.clothing.skin.ToString() + "'," +
-                    player.Player.clothing.hair + "," +
-                    player.Player.clothing.face + "," +
-                    player.Player.clothing.beard + "," +
-                    player.Player.clothing.hat + "," +
-                    player.Player.clothing.glasses + "," +
-                    player.Player.clothing.mask + "," +
-                    Convert.ToInt32(player.Bleeding) + "," +
-                    Convert.ToInt32(player.Broken) + "," +
-                    player.Health + "," +
-                    player.Stamina + "," +
-                    player.Hunger + "," +
-                    player.Thirst + "," +
-                    player.Infection + "," +
-                    player.Experience + "," +
-                    player.Reputation + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Agriculture) + "," +
-                    player.GetSkillLevel(UnturnedSkill.Cardio) + "," +
-                    player.GetSkillLevel(UnturnedSkill.Cooking) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Crafting) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Dexerity) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Diving) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Engineer) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Exercise) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Fishing) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Healing) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Immunity) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Mechanic) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Outdoors) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Overkill) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Parkour) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Sharpshooter) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Sneakybeaky) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Strength) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Survival) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Toughness) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Vitality) + "," + 
-                    player.GetSkillLevel(UnturnedSkill.Warmblooded) + "," +
-                    Livemap.Instance.IsPlayerHidden(player) +
-                    ")";
+                    if (plr == null) continue;
+                    UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(plr);
 
-                    MySQLCommand.ExecuteNonQuery();
+                    // update player data
+                    UpdatePlayer(player);
                 }
-                else
-                {
-                    // player already exists, update player row
-                    MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET " +
-                    "character_name = '" + player.CharacterName.ToString() + "'," +
-                    "display_name = '" + player.DisplayName.ToString() + "'," +
-                    "steam_group_id = '" + (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0") + "'," +
-                    "steam_avatar_medium = '" + (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar) + "'," +
-                    "server_id = '" + Provider.serverID + "'," +
-                    "ip_address = '" + player.IP.ToString() + "'," +
-                    "ping = '" + player.Ping.ToString() + "'," +
-                    "is_pro = " + Convert.ToInt32(player.IsPro) + "," +
-                    "is_admin = " + Convert.ToInt32(player.IsAdmin) + "," +
-                    "is_god = " + Convert.ToInt32(player.GodMode) + "," +
-                    "is_vanished = " + Convert.ToInt32(player.VanishMode) + "," +
-                    "in_vehicle = " + Convert.ToInt32(player.IsInVehicle) + "," +
-                    "vehicle_is_driver = " + ReturnVehicleData(player, "vehicle_is_driver") + ", " +
-                    "vehicle_instance_id = " + ReturnVehicleData(player, "vehicle_instance_id") + ", " +
-                    "vehicle_id = " + ReturnVehicleData(player, "vehicle_id") + ", " +
-                    "vehicle_fuel = " + ReturnVehicleData(player, "vehicle_fuel") + ", " +
-                    "vehicle_health = " + ReturnVehicleData(player, "vehicle_health") + ", " +
-                    "vehicle_headlights_on = " + ReturnVehicleData(player, "vehicle_headlights_on") + ", " +
-                    "vehicle_taillights_on = " + ReturnVehicleData(player, "vehicle_taillights_on") + ", " +
-                    "vehicle_sirens_on = " + ReturnVehicleData(player, "vehicle_sirens_on") + ", " +
-                    "vehicle_speed = " + ReturnVehicleData(player, "vehicle_speed") + ", " +
-                    "vehicle_has_battery = " + ReturnVehicleData(player, "vehicle_has_battery") + ", " +
-                    "vehicle_battery_charge = " + ReturnVehicleData(player, "vehicle_battery_charge") + ", " +
-                    "vehicle_exploded = " + ReturnVehicleData(player, "vehicle_exploded") + ", " +
-                    "vehicle_locked = " + ReturnVehicleData(player, "vehicle_locked") + ", " +
-                    "position = '" + player.Position.ToString() + "'," +
-                    "rotation = '" + player.Rotation.ToString() + "'," +
-                    "face = " + player.Player.clothing.face + "," +
-                    "hat = " + player.Player.clothing.hat + "," +
-                    "glasses = " + player.Player.clothing.glasses + "," +
-                    "mask = " + player.Player.clothing.mask + "," +
-                    "is_bleeding = " + Convert.ToInt32(player.Bleeding) + "," +
-                    "is_broken = " + Convert.ToInt32(player.Broken) + "," +
-                    "health = " + player.Health + "," +
-                    "stamina = " + player.Stamina + "," +
-                    "hunger = " + player.Hunger + "," +
-                    "thirst = " + player.Thirst + "," +
-                    "infection = " + player.Infection + "," +
-                    "experience = " + player.Experience + "," +
-                    "reputation = " + player.Reputation + "," +
-                    "skill_agriculture = " + player.GetSkillLevel(UnturnedSkill.Agriculture) + "," +
-                    "skill_cardio = " + player.GetSkillLevel(UnturnedSkill.Cardio) + "," +
-                    "skill_cooking = " + player.GetSkillLevel(UnturnedSkill.Cooking) + "," +
-                    "skill_crafting = " + player.GetSkillLevel(UnturnedSkill.Crafting) + "," +
-                    "skill_dexerity = " + player.GetSkillLevel(UnturnedSkill.Dexerity) + "," +
-                    "skill_diving = " + player.GetSkillLevel(UnturnedSkill.Diving) + "," +
-                    "skill_engineer = " + player.GetSkillLevel(UnturnedSkill.Engineer) + "," +
-                    "skill_exercise = " + player.GetSkillLevel(UnturnedSkill.Exercise) + "," +
-                    "skill_fishing = " + player.GetSkillLevel(UnturnedSkill.Fishing) + "," +
-                    "skill_healing = " + player.GetSkillLevel(UnturnedSkill.Healing) + "," +
-                    "skill_immunity = " + player.GetSkillLevel(UnturnedSkill.Immunity) + "," +
-                    "skill_mechanic = " + player.GetSkillLevel(UnturnedSkill.Mechanic) + "," +
-                    "skill_outdoors = " + player.GetSkillLevel(UnturnedSkill.Outdoors) + "," +
-                    "skill_overkill = " + player.GetSkillLevel(UnturnedSkill.Overkill) + "," +
-                    "skill_parkour = " + player.GetSkillLevel(UnturnedSkill.Parkour) + "," +
-                    "skill_sharpshooter = " + player.GetSkillLevel(UnturnedSkill.Sharpshooter) + "," +
-                    "skill_sneakybeaky = " + player.GetSkillLevel(UnturnedSkill.Sneakybeaky) + "," +
-                    "skill_strength = " + player.GetSkillLevel(UnturnedSkill.Strength) + "," +
-                    "skill_survival = " + player.GetSkillLevel(UnturnedSkill.Survival) + "," +
-                    "skill_toughness = " + player.GetSkillLevel(UnturnedSkill.Toughness) + "," +
-                    "skill_vitality = " + player.GetSkillLevel(UnturnedSkill.Vitality) + "," +
-                    "skill_warmblooded = " + player.GetSkillLevel(UnturnedSkill.Warmblooded) + "," +
-                    "is_hidden = " + Livemap.Instance.IsPlayerHidden(player) + " " +
-                    "WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-
-                    MySQLCommand.ExecuteNonQuery();
-                }
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
@@ -470,57 +410,84 @@ namespace NEXIS.Livemap
             }
         }
 
-        public int ReturnVehicleData(UnturnedPlayer player, string type)
+        /**
+         * Return Player Vehicle Data
+         * 
+         * This function checks if a player is in a vehicle, and collects data
+         * from the vehicle if one exists.
+         * @param {UnturnedPlayer} player Player data
+         * @param {string} prop Vehicle property name
+         */
+        public int ReturnVehicleData(UnturnedPlayer player, string prop)
         {
-            Dictionary<string, int> vehicleData = new Dictionary<string, int>(); ;
+            int data = 0;
 
             if (player.IsInVehicle)
             {
-                vehicleData.Add("vehicle_is_driver", Convert.ToInt32(player.CurrentVehicle.isDriver));
-                vehicleData.Add("vehicle_instance_id", Convert.ToInt32(player.CurrentVehicle.instanceID));
-                vehicleData.Add("vehicle_id", Convert.ToInt32(player.CurrentVehicle.id));
-                vehicleData.Add("vehicle_fuel", Convert.ToInt32(player.CurrentVehicle.fuel));
-                vehicleData.Add("vehicle_health", Convert.ToInt32(player.CurrentVehicle.health));
-                vehicleData.Add("vehicle_headlights_on", Convert.ToInt32(player.CurrentVehicle.headlightsOn));
-                vehicleData.Add("vehicle_taillights_on", Convert.ToInt32(player.CurrentVehicle.taillightsOn));
-                vehicleData.Add("vehicle_sirens_on", Convert.ToInt32(player.CurrentVehicle.sirensOn));
-                vehicleData.Add("vehicle_speed", Convert.ToInt32(player.CurrentVehicle.speed));
-                vehicleData.Add("vehicle_has_battery", Convert.ToInt32(player.CurrentVehicle.hasBattery));
-                vehicleData.Add("vehicle_battery_charge", Convert.ToInt32(player.CurrentVehicle.batteryCharge));
-                vehicleData.Add("vehicle_exploded", Convert.ToInt32(player.CurrentVehicle.isExploded));
-                vehicleData.Add("vehicle_locked", Convert.ToInt32(player.CurrentVehicle.isLocked));
+                switch (prop)
+                {
+                    case "vehicle_is_driver":
+                        data = Convert.ToInt32(player.CurrentVehicle.isDriver);
+                        break;
+                    case "vehicle_instance_id":
+                        data = Convert.ToInt32(player.CurrentVehicle.instanceID);
+                        break;
+                    case "vehicle_id":
+                        data = Convert.ToInt32(player.CurrentVehicle.id);
+                        break;
+                    case "vehicle_fuel":
+                        data = Convert.ToInt32(player.CurrentVehicle.fuel);
+                        break;
+                    case "vehicle_health":
+                        data = Convert.ToInt32(player.CurrentVehicle.health);
+                        break;
+                    case "vehicle_headlights_on":
+                        data = Convert.ToInt32(player.CurrentVehicle.headlightsOn);
+                        break;
+                    case "vehicle_taillights_on":
+                        data = Convert.ToInt32(player.CurrentVehicle.taillightsOn);
+                        break;
+                    case "vehicle_sirens_on":
+                        data = Convert.ToInt32(player.CurrentVehicle.sirensOn);
+                        break;
+                    case "vehicle_speed":
+                        data = Convert.ToInt32(player.CurrentVehicle.speed);
+                        break;
+                    case "vehicle_has_battery":
+                        data = Convert.ToInt32(player.CurrentVehicle.hasBattery);
+                        break;
+                    case "vehicle_battery_charge":
+                        data = Convert.ToInt32(player.CurrentVehicle.batteryCharge);
+                        break;
+                    case "vehicle_exploded":
+                        data = Convert.ToInt32(player.CurrentVehicle.isExploded);
+                        break;
+                    case "vehicle_locked":
+                        data = Convert.ToInt32(player.CurrentVehicle.isLocked);
+                        break;
+                }
 
-                return vehicleData[type];
+                return data;
             }
             else
             {
-                vehicleData.Add("vehicle_is_driver", 0);
-                vehicleData.Add("vehicle_instance_id", 0);
-                vehicleData.Add("vehicle_id", 0);
-                vehicleData.Add("vehicle_fuel", 0);
-                vehicleData.Add("vehicle_health", 0);
-                vehicleData.Add("vehicle_headlights_on", 0);
-                vehicleData.Add("vehicle_taillights_on", 0);
-                vehicleData.Add("vehicle_sirens_on", 0);
-                vehicleData.Add("vehicle_speed", 0);
-                vehicleData.Add("vehicle_has_battery", 0);
-                vehicleData.Add("vehicle_battery_charge", 0);
-                vehicleData.Add("vehicle_exploded", 0);
-                vehicleData.Add("vehicle_locked", 0);
-
-                return vehicleData[type];
+                return 0;
             }
         }
 
-
-        /* Event Queries */
+        /* EVENTS */
 
         public void OnPlayerConnected(UnturnedPlayer player)
         {
             try
             {
-                // insert/update connected player
-                RefreshPlayer(player);
+                // update / insert connected player row
+                UpdatePlayer(player);
+
+                // update player connection time
+                MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_connect = NULL WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+                object result = MySQLCommand.ExecuteScalar();
             }
             catch (Exception ex)
             {
@@ -532,15 +499,11 @@ namespace NEXIS.Livemap
         {
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // update player disconnect time
-                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_disconnect = NOW() WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_disconnect = NULL WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
                 MySQLCommand.ExecuteNonQuery();
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
@@ -551,37 +514,12 @@ namespace NEXIS.Livemap
         public void OnPlayerDead(UnturnedPlayer player, Vector3 position)
         {
             try
-            { 
-                MySqlConnection MySQLConnection = CreateConnection();
+            {
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // update death location and player death status
                 MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_dead_position = '" + player.Position.ToString() + "', is_dead = 1 WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
                 MySQLCommand.ExecuteNonQuery();
-                MySQLConnection.Close();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogException(ex);
-            }
-        }
-
-        public void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
-        {
-            try
-            { 
-                MySqlConnection MySQLConnection = CreateConnection();
-                MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
-
-                // update player disconnect time
-                //MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET is_dead = 1 WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
-                MySQLCommand.ExecuteNonQuery();
-                MySQLConnection.Close();
-                // save kill data
             }
             catch (Exception ex)
             {
@@ -592,16 +530,12 @@ namespace NEXIS.Livemap
         public void OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle)
         {
             try
-            { 
-                MySqlConnection MySQLConnection = CreateConnection();
+            {
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // update player dead status
                 MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET is_dead = 0 WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
                 MySQLCommand.ExecuteNonQuery();
-                MySQLConnection.Close();
             }
             catch (Exception ex)
             {
@@ -613,21 +547,18 @@ namespace NEXIS.Livemap
         {
             // save world chat, but not commands
             if (Livemap.Instance.Configuration.Instance.WorldChatEnabled && chatMode == EChatMode.GLOBAL && !message.StartsWith("/") && !message.StartsWith("@")) {
+
                 try
                 {
-                    MySqlConnection MySQLConnection = CreateConnection();
                     MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
-                    // update player experience
-                    //MySQLCommand.CommandText = "INSERT INTO " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat + " (steam_id,message,server_id) VALUES ('" + player.CSteamID.ToString() + "','" + message + "','" + Provider.serverID + "')";
+                    // add world chat message to database
                     MySQLCommand.CommandText = string.Format("INSERT INTO {0} (steam_id,message,server_id) VALUES ( @steam_id, @message, @server_id);", Livemap.Instance.Configuration.Instance.DatabaseTableLivemapChat);
                     MySQLCommand.Parameters.AddWithValue("@steam_id", player.CSteamID.ToString());
                     MySQLCommand.Parameters.AddWithValue("@message", message);
                     MySQLCommand.Parameters.AddWithValue("@server_id", Provider.serverID);
-                    MySQLConnection.Open();
 
                     MySQLCommand.ExecuteNonQuery();
-                    MySQLConnection.Close();
                 }
                 catch (Exception ex)
                 {
@@ -636,38 +567,18 @@ namespace NEXIS.Livemap
             }
         }
 
-        public void OnPlayerUpdateExperience(UnturnedPlayer player, uint experience)
+        public void CleanUp()
         {
             try
             {
-                MySqlConnection MySQLConnection = CreateConnection();
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
-                // update player experience
-                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET experience = " + experience + " WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                MySQLConnection.Open();
-
+                // update player disconnect timestamps 
+                // where connection timestamp is greater than disconnect timestamp (currently connected)
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_disconnect = NULL WHERE last_connect > last_disconnect";
                 MySQLCommand.ExecuteNonQuery();
-                MySQLConnection.Close();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogException(ex);
-            }
-        }
 
-        public void Unload()
-        {
-            try
-            {
-                MySqlConnection MySQLConnection = CreateConnection();
-                MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
-
-                // update player disconnect time
-                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_disconnect = now()";
-                MySQLConnection.Open();
-
-                MySQLCommand.ExecuteNonQuery();
+                // close mysql connection
                 MySQLConnection.Close();
             }
             catch (Exception ex)

@@ -3,6 +3,7 @@ using Rocket.API;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace NEXIS.Livemap
 {
@@ -24,7 +25,7 @@ namespace NEXIS.Livemap
 
         public string Help
         {
-            get { return "Toggle hiding yourself from the website livemap."; }
+            get { return "This command toggles hiding your character location from the website Livemap."; }
         }
 
         public List<string> Aliases
@@ -49,33 +50,52 @@ namespace NEXIS.Livemap
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
 
-            // if player hiding is enabled, toggle player hidden
             if (Livemap.Instance.Configuration.Instance.PlayerHideEnabled)
             {
-                // is player in PlayersHiddenCooldown dictionary?
+                // if player is in cooldown state
                 if (Livemap.PlayersHiddenCooldown.ContainsKey(player.CSteamID)) {
-                    UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_remaining", (Math.Round((Livemap.Instance.Configuration.Instance.PlayerHideCooldownDuration - (DateTime.Now -(DateTime)Livemap.PlayersHiddenCooldown[player.CSteamID]).TotalSeconds), 0, MidpointRounding.AwayFromZero)) + " seconds"));
+                    UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_cooldown_remaining", (Math.Round((Livemap.Instance.Configuration.Instance.PlayerHideCooldownDuration - (DateTime.Now -(DateTime)Livemap.PlayersHiddenCooldown[player.CSteamID]).TotalSeconds), 0, MidpointRounding.AwayFromZero)) + " seconds"), Color.yellow);
                     return;
                 }
 
-                // is player already hiding?
+                // if player is currently hiding
                 if (Livemap.PlayersHidden.ContainsKey(player.CSteamID))
                 {
-                    // hiding; unhide player
+                    // save player hide duration
+                    Livemap.PlayersHiddenDuration.Add(player.CSteamID, (DateTime.Now - Livemap.PlayersHidden[player.CSteamID].Value).TotalSeconds);
+
+                    // unhide player
                     Livemap.PlayersHidden.Remove(player.CSteamID);
-                    UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_false"));
+                    UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_false"), Color.yellow);
                 }
-                else
+                else // player is not hiding
                 {
-                    // not hiding; hide player
-                    Livemap.PlayersHidden.Add(player.CSteamID, DateTime.Now);
-                    UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_true", Livemap.Instance.Configuration.Instance.PlayerHideDuration + " seconds"));
+                    double savedDuration = Livemap.Instance.Configuration.Instance.PlayerHideDuration;
+
+                    // add previous player hide duration
+                    if (Livemap.PlayersHiddenDuration.ContainsKey(player.CSteamID))
+                    {
+                        savedDuration = Livemap.PlayersHiddenDuration[player.CSteamID];
+
+                        Livemap.PlayersHidden.Add(player.CSteamID, DateTime.Now.AddSeconds(-savedDuration));
+                        Livemap.PlayersHiddenDuration.Remove(player.CSteamID); // remove player
+
+                        TimeSpan span = DateTime.Now.Subtract(DateTime.Now.AddSeconds(-savedDuration));
+                        int result = Livemap.Instance.Configuration.Instance.PlayerHideDuration - span.Seconds;
+
+                        UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_true", result + " seconds"), Color.white);
+                    }
+                    else
+                    {
+                        Livemap.PlayersHidden.Add(player.CSteamID, DateTime.Now);
+                        UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_true", savedDuration + " seconds"), Color.white);
+                    }
                 }
             }
             else
             {
-                // livemap command disabled in config, notify player
-                UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_disabled"));
+                // command disabled in config
+                UnturnedChat.Say(caller, Livemap.Instance.Translations.Instance.Translate("livemap_hidden_disabled"), Color.red);
             }
         }
     }
