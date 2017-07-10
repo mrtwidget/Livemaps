@@ -8,7 +8,7 @@ Current Release:
 ----------------
 ![picture alt](http://nexisrealms.com/images/hosted/livemaps-0.2-cover.png "Livemaps v0.2")
 
-- **Livemap v0.2** *- under development, set to release July 2017*
+- **Livemap v0.2**
     - Livemap Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
 
 How to Install:
