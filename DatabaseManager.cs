@@ -341,7 +341,7 @@ namespace NEXIS.Livemap
             MySQLCommand.Parameters.AddWithValue("@vehicle_locked", ReturnVehicleData(player, "vehicle_locked"));
             MySQLCommand.Parameters.AddWithValue("@position", player.Position.ToString());
             MySQLCommand.Parameters.AddWithValue("@rotation", player.Rotation.ToString());
-            MySQLCommand.Parameters.AddWithValue("@skin_color", player.Player.clothing.skin.ToString());
+            MySQLCommand.Parameters.AddWithValue("@skin_color", ColorTypeConverter.ToRGBHex(player.Player.clothing.skin));
             MySQLCommand.Parameters.AddWithValue("@hair", player.Player.clothing.hair);
             MySQLCommand.Parameters.AddWithValue("@face", player.Player.clothing.face);
             MySQLCommand.Parameters.AddWithValue("@beard", player.Player.clothing.beard);
@@ -382,6 +382,20 @@ namespace NEXIS.Livemap
             MySQLCommand.Parameters.AddWithValue("@is_hidden", Livemap.Instance.IsPlayerHidden(player));
 
             MySQLCommand.ExecuteNonQuery();
+        }
+
+        public static class ColorTypeConverter
+        {
+            public static string ToRGBHex(Color c)
+            {
+                return string.Format("#{0:X2}{1:X2}{2:X2}", ToByte(c.r), ToByte(c.g), ToByte(c.b));
+            }
+
+            private static byte ToByte(float f)
+            {
+                f = Mathf.Clamp01(f);
+                return (byte)(f * 255);
+            }
         }
 
         /**

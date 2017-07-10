@@ -4,13 +4,19 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 *The WebUI portion of this plugin is optional*, and is intended only as a default theme for this project. The API may be used independently to support fully custom livemap themes and features.
 
-![picture alt](http://nexisrealms.com/images/hosted/Livemap-0.2_green.jpg "Livemap v0.2 - under development, set to release July 2017")
+Current Release:
+----------------
+![picture alt](http://nexisrealms.com/images/hosted/livemaps-0.2-cover.png "Livemaps v0.2")
 
-**Current Release :**
-- Livemap v0.2 *- under development, set to release July 2017*
-    - See a live demo here: Nexis Realms Livemap Development Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
+- **Livemap v0.2** *- under development, set to release July 2017*
+    - Livemap Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
 
-**How to Install:**
+How to Install:
+---------------
+There are three parts to this plugin: 
+1. **[Rocket Mod plugin](https://rocketmod.net/plugins)** *(livemap.dll)*
+2. **WebUI** *- the website files*
+3. **API** *- how the WebUI gets updates from the server*
 
 ***Livemap Rocket Plugin***
 1. Compile this project
@@ -71,7 +77,8 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 ---
 
-**API Returnable Fields:**
+API Returnable Fields:
+----------------------
 - Server ID
 - Server Name
 - App Version 
@@ -149,14 +156,15 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 **Requirements:**
 - PHP 5.6.+
-- MySQL 5.6.+
+- MySQL 5.6.5+
+    - *It is **required** to have a minimum MySQL version of **5.6.5** to use this plugin. This is to support the use of tables with multiple timestamp fields.*
 
 ---
 
 **Resources:**
-- Trello my development process: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
-- Nexis Realms Livemap Development Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
+- Livemap Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
+- Trello: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
 
 ---
 
-*author: Nexis (steam:iamtwidget) <[mrtwidget@gmail.com](mailto:mrtwidget@gmail.com)>*
+*author: Nexis (steam:iamtwidget) <[nexis@nexisrealms.com](mailto:nexis@nexisrealms.com)>*

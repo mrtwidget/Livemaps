@@ -6,12 +6,18 @@
                 <!-- loading screen -->
                 <div class="livemap-loading">
                     <div class="livemap-loading-container">
-                        <img src="images/favicon.png" alt="loading">
-                        <p>loading</p>
+                        <img class="heartbeat" src="images/icons/heart/10.png" alt="heart">
                     </div>
                 </div>
+                <div class="livemap-static-container hidden">
+                    <div class="livemap-static-header">
+                        <h1>Are you still there?</h1>
+                        <p>The Livemaps fell asleep! Refresh this page to continue.</p>
+                    </div>
+                    <div class="livemap-static"></div>
+                </div>
                 <!-- map image -->
-                <img class="img-responsive" src="images/maps/<?php echo $_GET["Map"]; ?>/Map.jpg" alt="">
+                <img class="img-responsive" src="images/maps/<?php echo strtolower($_GET["Map"]); ?>/Map.jpg" alt="">
                 <!-- player nodes -->
                 <div class="livemap-nodes"></div>
                 <!-- map overlay -->
@@ -25,7 +31,7 @@
         </div>
         <div class="col-lg-4 col-md-3 hidden-xs" style="padding-left:0">
             <div class="livemap-badges">
-                <div class="livemap-badge-container">
+                <div class="livemap-online-players">
                     <div class="livemap-badge-player">
                         <img src="images/icons/players-online.png" alt=""> 
                         <span class="livemap-badges-online-players">Players: <span class="player-count">0/0</span></span>
