@@ -4,6 +4,7 @@
 
 /* elements */
 html, body { height: 100%; }
+body { background: url("../images/fbg.jpg") no-repeat; } 
 h2 small { 
     color: white;
     font-size: 14px;

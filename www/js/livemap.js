@@ -74,6 +74,11 @@ function returnServerList() {
         },
         success: function(data) {
             // create servers list
+            jQuery.each(data.livemap_server, function(index, server) {
+                var title = "<h2>"+ server.map +"</h2>";
+                var image = "<a href=\"?id="+ server.server_id.toLowerCase() +"\" title=\"View Livemap\"><img src=\"images/maps/"+ server.map.toLowerCase() +"/Icon.png\"></a>";
+                $(".livemaps").append(title + image);
+            });
         },
         error: function(e) {
             console.log(e);
