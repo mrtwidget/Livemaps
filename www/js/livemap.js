@@ -37,7 +37,6 @@ var Heartbeats = [];
 var RefreshCounter = 10;
 /* Total Refresh Counter */
 var TotalRefreshes = 0;
-
 /* First Page Load */
 var FirstLoad = true;
 
@@ -47,7 +46,25 @@ var FirstLoad = true;
  * This function queries the API for active server data. If any active servers
  * are found, all relevant data is then queried and loaded to the page
  */
-function init() {
+function init(server_id = null) {
+    $.ajax({
+        dataType: "json",
+        type: "GET",
+        url: "api/livemap.api.php",
+        data: {
+            livemap: server_id,
+            filter: "livemap_server"
+        },
+        success: function(data) {
+            LoadLivemaps(data.livemap_server);
+        },
+        error: function(e) {
+            console.log(e);
+        }
+    });
+}
+
+function returnServerList() {
     $.ajax({
         dataType: "json",
         type: "GET",
@@ -56,7 +73,7 @@ function init() {
             filter: "livemap_server"
         },
         success: function(data) {
-            LoadLivemaps(data);
+            // create servers list
         },
         error: function(e) {
             console.log(e);
@@ -746,10 +763,6 @@ $(document).on({
             FirstLoad = false;
         }
     }
-});
-
-$(document).ready(function() {    
-    init(); // initiate the livemaps
 });
 
 /*

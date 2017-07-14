@@ -88,7 +88,8 @@ class API {
         // if only $filter is set to `livemap_server` return server status only
         if ($server_id == null && $filter == $livemap_server) {
             $query = $this->mysql->query($livemap_init_query);
-            return $query->fetchAll(PDO::FETCH_ASSOC);
+            $result["livemap_server"] = $query->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
         } else {
             // loop through each table and collect data matching passed `server_id`
             foreach ($this->config["database"]["tables"] as $table) {
@@ -107,7 +108,6 @@ class API {
                     }
                 }
             }
-
             // if `livemap_server` is empty return null
             return $result;
         }

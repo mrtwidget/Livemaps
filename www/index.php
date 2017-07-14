@@ -15,6 +15,7 @@
         <script src="js/velocity.min.js"></script>
         <script src="js/velocity.ui.js"></script>
         <script src="js/livemap.js"></script>
+        <script><?php echo(isset($_GET['id']) ? "init('". $_GET['id'] ."');" : "returnServerList();"); ?></script>
     </head>
 
     <body>
