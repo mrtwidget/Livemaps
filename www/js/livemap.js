@@ -411,6 +411,7 @@ function AddPlayerBadge(player_data) {
             CSteamID: player_data.CSteamID,
             CharacterName: player_data.character_name,
             Reputation: returnPlayerBadgeReputationString(player_data.reputation),
+            ReputationName: returnPlayerBadgeReputationName(player_data.reputation),
             Avatar: player_data.steam_avatar_medium,
             BadgeColor: returnPlayerType(player_data),
             TypeIcon: returnPlayerBadgeTypeIcon(player_data)
@@ -418,7 +419,7 @@ function AddPlayerBadge(player_data) {
         success: function(data) {
             $(".livemap[data-server-id='" + player_data.server_id + "'] .livemap-badges-container").append(data);
             if (!FirstLoad) {
-                $(".livemap[data-server-id='" + player_data.server_id + "'] .livemap-badge-container[data-steam-id='" + player_data.CSteamID + "']").velocity("transition.bounceDownIn", { drag: true });
+                $(".livemap[data-server-id='" + player_data.server_id + "'] .livemap-badge-container[data-steam-id='" + player_data.CSteamID + "']").velocity("transition.bounceIn", { drag: true });
             }
         },
         error: function(e) {
@@ -624,6 +625,34 @@ function returnNodeFace(player_data) {
     }
 }
 
+function returnPlayerBadgeReputationName(reputation) {
+    // neutral reputation
+    if (reputation == 0) {
+        return "neutral";
+    // positive reputation
+    } else if (reputation >= 1 && reputation <= 7) {
+        return "vigilante";
+    } else if (reputation >= 8 && reputation <= 32) {
+        return "constable";
+    } else if (reputation >= 33 && reputation <= 99) {
+        return "deputy";
+    } else if (reputation >= 100 && reputation <= 199) {
+        return "sheriff";
+    } else if (reputation >= 200) {
+        return "paragon";
+    // negative reputation
+    } else if (reputation <= -1 && reputation >= -7) {
+        return "thug";
+    } else if (reputation <= -8 && reputation >= -32) {
+        return "outlaw";
+    } else if (reputation <= -33 && reputation >= -99) {
+        return "gangster";
+    } else if (reputation <= -100 && reputation >= -199) {
+        return "bandit";
+    } else if (reputation <= -200) {
+        return "villain";
+    }
+}
 /**
  * RETURN PLAYER BADGE REPUTATION STRING
  * 
