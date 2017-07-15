@@ -4,7 +4,9 @@
     <div class="livemap-badge-player">
         <div class="row">
             <div class="col-md-3 col-lg-4">
-                <img src="<?php echo $_GET["Avatar"]; ?>" alt="avatar">
+                <a href="http://steamcommunity.com/profiles/<?php echo $_GET["CSteamID"]; ?>" target="_blank" title="View Steam Profile">
+                    <img class="steam-avatar" src="<?php echo $_GET["Avatar"]; ?>" alt="avatar">
+                </a>
                 <img class="hidden-md" src="images/icons/reputations/<?php echo $_GET["ReputationName"]; ?>.png" alt="reputation-icon">
             </div>
             <div class="col-md-7 col-lg-6">

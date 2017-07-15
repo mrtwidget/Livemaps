@@ -144,7 +144,9 @@ a:hover {color: whitesmoke; text-decoration: none }
         max-height: 46px;
         display: none;
     }
-    .livemap-badge-container:hover { outline: 1px solid #aaa; }
+    .livemap-badge-container:hover,
+    .steam-avatar:hover 
+    { border: 1px solid #aaa; }
 
         /* player avatar & reputation icons */
         .livemap-badge-container img {
