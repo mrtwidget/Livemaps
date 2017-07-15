@@ -312,13 +312,15 @@ function UpdateLivemapHUD(livemap_server) {
  */
 function UpdatePlayerNodes(livemap_server,livemap_data) {
     jQuery.each(livemap_data, function(index, player) {
-        // update player node face
-        $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").attr("src", "images/nodes/faces/"+ returnNodeFace(player) +".png");
-
         // check vehicle status
         if (player.in_vehicle > 0) {
-             $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").attr("src", "images/nodes/vehicles/"+ returnVehicleIcon(player) +".png");
-        }       
+            $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").attr("src", "images/nodes/vehicles/"+ returnVehicleIcon(player) +".png");
+            $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").css({"background-color":"transparent",border:0});
+        } else {
+        // update player node face and color
+            $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").attr("src", "images/nodes/faces/"+ returnNodeFace(player) +".png");
+            $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "'] img.livemap-node").css({"background-color":(player.skin_color == '#000000' ? '#CCCC91' : player.skin_color)});
+        }
 
         // calculate new player position
         var calcPos = CalculateVectorPosition(player.server_id, livemap_server.map, player.position);
@@ -326,7 +328,8 @@ function UpdatePlayerNodes(livemap_server,livemap_data) {
         // animate player node to new position
         $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player.CSteamID + "']").velocity({
             left: calcPos[0],
-            bottom: calcPos[1]
+            bottom: calcPos[1],
+            rotateZ: (player.in_vehicle > 0 ? player.rotation : 0)
         },
         {
             duration: RefreshInterval[player.server_id], 
@@ -474,7 +477,7 @@ function UpdateWorldChat(livemap_chat = null, livemap_server) {
                     updateWorldChatScroll(val.server_id);
 
                     // animate new message
-                    $("#msg" + val.id).velocity("transition.perspectiveUpIn", { stagger: 300 });
+                    $("#msg" + val.id).velocity("transition.slideUpIn", { stagger: 150, drage: true });
                 }
 
                 if (newestMsgID < val.id) { newestMsgID = val.id; }

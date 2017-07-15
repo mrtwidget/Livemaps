@@ -110,7 +110,7 @@ a:hover {color: whitesmoke; text-decoration: none }
      }
 
     .livemap-node-icon {
-        outline: 1px solid #333;
+        /* outline: 1px solid #333; */
         width: 20px;
         height: 20px;
         margin: 0 auto;
