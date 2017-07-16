@@ -162,7 +162,7 @@ namespace NEXIS.Livemap
                     "is_hidden TINYINT(1) DEFAULT 0," +
                     "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
                     "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                    "last_disconnect TIMESTAMP," +
+                    "last_disconnect TIMESTAMP DEFAULT NULL," +
                     "PRIMARY KEY(CSteamID));";
 
                     MySQLCommand.ExecuteNonQuery();
