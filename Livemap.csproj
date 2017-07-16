@@ -235,13 +235,13 @@
     <Content Include="www\images\icons\static.gif">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="www\images\maps\alpha valley\Chart.jpg">
+    <Content Include="www\images\maps\alpha-valley\Chart.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="www\images\maps\alpha valley\Icon.png">
+    <Content Include="www\images\maps\alpha-valley\Icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="www\images\maps\alpha valley\Map.jpg">
+    <Content Include="www\images\maps\alpha-valley\Map.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="www\images\maps\germany\Chart.jpg">
