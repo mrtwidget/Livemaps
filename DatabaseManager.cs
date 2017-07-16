@@ -316,7 +316,7 @@ namespace NEXIS.Livemap
             MySQLCommand.Parameters.AddWithValue("@CSteamID", player.CSteamID.ToString());
             MySQLCommand.Parameters.AddWithValue("@character_name", player.CharacterName);
             MySQLCommand.Parameters.AddWithValue("@display_name", player.DisplayName);
-            MySQLCommand.Parameters.AddWithValue("@steam_group_id", (player.SteamGroupID != null ? player.SteamGroupID.ToString() : "0"));
+            MySQLCommand.Parameters.AddWithValue("@steam_group_id", (player.SteamGroupID.ToString() != null ? player.SteamGroupID.ToString() : "0"));
             MySQLCommand.Parameters.AddWithValue("@steam_avatar_medium", (player.SteamProfile.AvatarMedium != null ? player.SteamProfile.AvatarMedium.ToString() : Livemap.Instance.Configuration.Instance.PlayerDefaultSteamAvatar));
             MySQLCommand.Parameters.AddWithValue("@server_id", Provider.serverID);
             MySQLCommand.Parameters.AddWithValue("@ip_address", player.IP.ToString());
@@ -501,7 +501,7 @@ namespace NEXIS.Livemap
                 // update player connection time
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
                 MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_connect = NULL WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
-                object result = MySQLCommand.ExecuteScalar();
+                MySQLCommand.ExecuteScalar();
             }
             catch (Exception ex)
             {
