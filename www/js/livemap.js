@@ -6,12 +6,13 @@
 /**
  * Disable Specific Livemaps
  * Use the following array to disable specific livemaps that you do not want to
- * display on the page by entering their server instance names below
- * NOTE: **LOWERCASE ONLY!!**
+ * display on the page by entering their server instance names below.
  */
 
 /* Disabled Livemaps */
 var DisabledLivemaps = []; /* var DisabledLivemaps = ['server1', 'pei']; */
+/* Default Node Skin Color */
+var DefaultSkinColor = '#CCCC91';
 /* Max Refreshes */
 var MaxRefresh = 60;
 
@@ -64,6 +65,12 @@ function init(server_id = null) {
     });
 }
 
+/**
+ * RETURN SERVER LIST (default page)
+ * 
+ * This function returns a list of servers that are actively running and lists 
+ * a link to each server Livemap by default.
+ */
 function returnServerList() {
     $.ajax({
         dataType: "json",
@@ -75,9 +82,21 @@ function returnServerList() {
         success: function(data) {
             // create servers list
             jQuery.each(data.livemap_server, function(index, server) {
-                var title = "<h2>"+ server.map +"</h2>";
-                var image = "<a href=\"?id="+ server.server_id.toLowerCase() +"\" title=\"View Livemap\"><img src=\"images/maps/"+ server.map.toLowerCase() +"/Icon.png\"></a>";
-                $(".livemaps").append(title + image);
+
+                var data = "<div class=\"livemap-status\">" +
+                    "<div class=\"server-name\">"+ server.server_name +"</div>" +
+                    "<div class=\"server-map\">"+ server.map +"</div>" +
+                    "<div class=\"server-version\">"+ server.app_version +"</div>" + 
+                    //"<div class=\"server-port\">"+ server.port +"</div>" + 
+                    "<div class=\"server-players\">"+ server.online_players +"</div>" + 
+                    "<div class=\"server-max-players\">"+ server.max_players +"</div>" + 
+                    "<a href=\"?id="+ server.server_id.toLowerCase() +"\" title=\"View Livemap\">" +
+                    "<img class=\"status-overlay\" src=\"images/status/livemap_status_online.png\">" + 
+                    "<img src=\"images/maps/"+ server.map.toLowerCase() +"/Icon.png\">" +
+                    "</a>" +
+                    "</div>";                
+                
+                $(".livemaps").append(data);
             });
         },
         error: function(e) {
@@ -144,6 +163,9 @@ function LoadLivemaps(livemap_server) {
     })
 }
 
+/**
+ * TRIGGER LIVEMAP REFRESH
+ */
 function TriggerLivemapRefresh() {
     if (TotalRefreshes < MaxRefresh) {
         for (var i = 0; i < ActiveInstances.length; i++) {
@@ -338,8 +360,19 @@ function UpdatePlayerNodes(livemap_server,livemap_data) {
     })
 }
 
+/**
+ * ADD PLAYER NODE
+ * 
+ * This function creates a new player map node via ajax request to the node
+ * template, and then appends the Livemap with the new player data.
+ * @param {obj} player_data 
+ * @param {obj} livemap_server 
+ */
 function AddPlayerNode(player_data,livemap_server) {
-    if (player_data.skin_color == '#000000') player_data.skin_color = '#CCCC91';
+    // for some reason player skin color defaults to black when a player first
+    // connects, which makes it hard to see the faces, so let's change it to
+    // the default skin color, for now
+    if (player_data.skin_color == '#000000') player_data.skin_color = DefaultSkinColor;
 
     $.ajax({
         type: "GET",
@@ -353,8 +386,9 @@ function AddPlayerNode(player_data,livemap_server) {
             Face: returnNodeFace(player_data)
         },
         success: function(data) {
-            // process returned data
+            // add node to Livemap
             $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-nodes").append(data);
+            // only animate the node if this is NOT the first page load
             if (!FirstLoad) {
                 $(".livemap[data-server-id='" + livemap_server.server_id + "'] .livemap-node-container[data-steam-id='" + player_data.CSteamID + "']").velocity("transition.bounceIn", { drag: true });
             }
@@ -364,6 +398,7 @@ function AddPlayerNode(player_data,livemap_server) {
         }
     });
 }
+// removes player node
 function RemovePlayerNode(steam_id) {
     $(".livemap-node-container[data-steam-id='" + steam_id + "']").hide();
 }

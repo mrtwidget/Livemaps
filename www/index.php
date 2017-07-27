@@ -23,11 +23,11 @@
             <source src="images/bg.mp4" type="video/mp4"> 
         </video>
 
-        <div class="author"><small>Livemaps v0.2 by <a href="mailto:nexis@nexisrealms.com">Nexis</a></small></div>
-
         <div class="container">
-            <h2>Livemap Plugin <small>v0.2</small></h2>
+            <h1>Livemaps v0.2 Development</h1>
             <div class="livemaps"></div>
         </div>
+
+        <div class="author"><small>Livemaps v0.2 by <a href="mailto:nexis@nexisrealms.com">Nexis</a></small></div>
     </body>
 </html>

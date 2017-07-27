@@ -24,7 +24,64 @@ a:hover {color: whitesmoke; text-decoration: none }
     z-index: 999;
 }
 
-/* livemap default */
+/* livemap status page */
+.livemap-status {
+    position: relative;
+    max-width: 380px;
+    color: #ffffff;
+    margin-bottom: 1em;
+    overflow: hidden;
+    display: inline-block;
+	margin: 1em;
+}
+.server-name,
+.server-version,
+.server-port,
+.server-map,
+.server-players {
+    position: absolute;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    z-index: 999;
+}
+    /* server name */
+    .server-name {
+        bottom: 0;
+        font-size: 14px;
+        font-weight: bold;
+        padding-left: 0.3em
+    }
+    .server-map { padding-left: 0.3em }
+    .server-version { 
+        top: 16px;
+        font-size: 10px;
+        padding-left: 0.5em;
+        color: #3af500;
+    }
+    /* online player count */
+    .server-players { 
+        right:0; top: 5px;
+        font-size: 62px;
+        line-height: 80px;
+        width: 110px;
+        text-align: center;
+    }
+    /* max players count */
+    .server-max-players {
+        position: absolute;
+        bottom: 0;
+        right: 1px;
+        color: #0abb0a;
+        z-index: 1;
+        line-height: 16px;
+    }
+    /* status overlay */
+    .status-overlay {
+        position: absolute;
+    }
+
+/* livemap */
+.livemaps { text-align: center }
+
 .livemap,
 .livemap-badge-container,
 .livemap-online-players {
