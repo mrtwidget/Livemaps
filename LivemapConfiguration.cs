@@ -4,6 +4,8 @@ namespace NEXIS.Livemap
 {
     public class LivemapConfiguration : IRocketPluginConfiguration
     {
+        public bool LivemapEnabled;
+        public bool LivemapStatusEnabled;
         public int LivemapRefreshInterval;
         public bool WorldChatEnabled;
         public bool PlayerHideEnabled;
@@ -24,6 +26,8 @@ namespace NEXIS.Livemap
         public void LoadDefaults()
         {
             // General Settings
+            LivemapEnabled = true;
+            LivemapStatusEnabled = true;
             LivemapRefreshInterval = 10;
             WorldChatEnabled = true;
             PlayerHideEnabled = true;

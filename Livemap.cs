@@ -7,6 +7,7 @@ using Rocket.Unturned.Chat;
 using SDG.Unturned;
 using Steamworks;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using Rocket.API.Collections;
 using Rocket.API;
@@ -35,9 +36,9 @@ namespace NEXIS.Livemap
         
         // Player Hide Duration <Steam64ID, DateTime>
         public Dictionary<CSteamID, double> PlayersHiddenDuration;
-        
+
         #endregion
-        
+
         #region Overrides
 
         protected override void Load()
@@ -61,9 +62,11 @@ namespace NEXIS.Livemap
 
         protected override void Unload()
         {
-            // update all player `last_disconnect` columns
-            Database.CleanUp();
-
+            if (Database != null)
+                Database.CleanUp();
+            else
+                Logger.Log("FATAL ERROR: Could not connect to database! You must configure your MySQL settings first!", ConsoleColor.Red);
+            
             U.Events.OnPlayerConnected -= Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead -= Events_OnPlayerDead;
@@ -122,7 +125,7 @@ namespace NEXIS.Livemap
         public void FixedUpdate()
         {
             if (Instance.State != PluginState.Loaded) return;
-            
+
             /* Update Database */
             if (Instance.LastRefresh == null || (DateTime.Now - Instance.LastRefresh.Value).TotalSeconds > Instance.Configuration.Instance.LivemapRefreshInterval)
                 UpdateDatabase();
@@ -140,13 +143,13 @@ namespace NEXIS.Livemap
         public void UpdateDatabase()
         {
             // refresh server database data
-            Instance.Database.UpdateServerData();
+            Database.UpdateServerData();
 
             // update each connected player in the database
-            Instance.Database.UpdateAllPlayers();
+            Database.UpdateAllPlayers();
 
             // update refresh timestamp
-            Instance.LastRefresh = DateTime.Now;
+            LastRefresh = DateTime.Now;
         }
 
         public void HideCooldownExpiration()
