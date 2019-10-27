@@ -4,47 +4,30 @@ namespace NEXIS.Livemap
 {
     public class LivemapConfiguration : IRocketPluginConfiguration
     {
+        public bool LivemapDebug;
         public bool LivemapEnabled;
-        public bool LivemapStatusEnabled;
+        public bool MySQLEnabled;
         public int LivemapRefreshInterval;
         public bool WorldChatEnabled;
-        public bool PlayerHideEnabled;
-        public bool PlayerHideCooldownEnabled;
-        public int PlayerHideDuration;
-        public int PlayerHideCooldownDuration;
+        public bool PlayerHidingEnabled;
+        public bool ShowCommandsInChat;
         public string PlayerDefaultSteamAvatar;
-
-        public string DatabaseHost;
-        public string DatabaseUser;
-        public string DatabasePass;
-        public string DatabaseName;
-        public int DatabasePort;
-        public string DatabaseTableLivemapServer;
-        public string DatabaseTableLivemapData;
-        public string DatabaseTableLivemapChat;
+        public string ConnectionAddress;
+        public string WebsiteURI;
 
         public void LoadDefaults()
         {
             // General Settings
+            LivemapDebug = false;
             LivemapEnabled = true;
-            LivemapStatusEnabled = true;
+            MySQLEnabled = false;
             LivemapRefreshInterval = 10;
             WorldChatEnabled = true;
-            PlayerHideEnabled = true;
-            PlayerHideCooldownEnabled = true;
-            PlayerHideDuration = 300;
-            PlayerHideCooldownDuration = 600;
+            PlayerHidingEnabled = true;
+            ShowCommandsInChat = false;
             PlayerDefaultSteamAvatar = "images/avatars/unknown.png";
-
-            // Database Settings
-            DatabaseHost = "localhost";
-            DatabaseUser = "unturned";
-            DatabasePass = "password";
-            DatabaseName = "unturned";
-            DatabasePort = 3306;
-            DatabaseTableLivemapServer = "livemap_server";
-            DatabaseTableLivemapData = "livemap_data";
-            DatabaseTableLivemapChat = "livemap_chat";
+            ConnectionAddress = "nexisrealms.net:27016";
+            WebsiteURI = "http://nexisrealms.com/livemap/api/livemap.api.php";
         }
     }
 }

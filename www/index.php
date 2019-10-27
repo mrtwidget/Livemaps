@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Livemap v0.2</title>
+        <title>Livemap v0.3</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#942a30">
         <link rel="icon" sizes="192x192" href="images/favicon.png">
@@ -15,19 +15,19 @@
         <script src="js/velocity.min.js"></script>
         <script src="js/velocity.ui.js"></script>
         <script src="js/livemap.js?<?php echo time(); ?>"></script>
-        <script><?php echo(isset($_GET['id']) ? "init('". $_GET['id'] ."');" : "returnServerList();"); ?></script>
+        <script>init();</script>
+        
     </head>
 
     <body>
         <video loop muted autoplay poster="images/fbg.jpg" class="fullscreen-bg__video">
-            <source src="images/bg.mp4" type="video/mp4"> 
+            <source src="images/tnr1.mp4" type="video/mp4"> 
         </video>
 
-        <div class="container">
-            <h1>Livemaps v0.2 Development</h1>
+        <div class="container">            
             <div class="livemaps"></div>
         </div>
 
-        <div class="author"><small>Livemaps v0.2 by <a href="mailto:nexis@nexisrealms.com">Nexis</a></small></div>
+        <div class="author"><small>Livemaps v0.3 by <a href="mailto:nexis@nexisrealms.com">Nexis</a></small></div>
     </body>
 </html>

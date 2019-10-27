@@ -88,9 +88,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLivemap.cs" />
-    <Compile Include="DatabaseManager.cs" />
+    <Compile Include="Chat.cs" />
+    <Compile Include="CommandHide.cs" />
     <Compile Include="Livemap.cs" />
+    <Compile Include="Nodes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LivemapConfiguration.cs" />
   </ItemGroup>

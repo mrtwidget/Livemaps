@@ -7,7 +7,11 @@ using Rocket.Unturned.Chat;
 using SDG.Unturned;
 using Steamworks;
 using System;
-using System.Data;
+using System.Net;
+using System.Text;
+using System.Xml;
+using System.IO;
+using System.Threading;
 using System.Collections.Generic;
 using Rocket.API.Collections;
 using Rocket.API;
@@ -20,22 +24,11 @@ namespace NEXIS.Livemap
         #region Fields
         
         public static Livemap Instance;
-        public DatabaseManager Database;
 
-        // last refresh timestamp
         public DateTime? LastRefresh;
-        
-        // Online Players <Steam64ID, CharacterName>
-        public Dictionary<CSteamID, string> PlayersOnline;
-        
-        // Hidden Players <Steam64ID, DateTime>
-        public Dictionary<CSteamID, DateTime?> PlayersHidden;
-        
-        // Hide Cooldown <Steam64ID, DateTime>
-        public Dictionary<CSteamID, DateTime?> PlayersHiddenCooldown;
-        
-        // Player Hide Duration <Steam64ID, DateTime>
-        public Dictionary<CSteamID, double> PlayersHiddenDuration;
+        public Dictionary<CSteamID, Nodes> Nodes;
+        public Dictionary<int, Chat> Chat;
+        public int LastChatID;
 
         #endregion
 
@@ -44,12 +37,10 @@ namespace NEXIS.Livemap
         protected override void Load()
         {
             Instance = this;
-            Database = new DatabaseManager();
             
-            PlayersOnline = new Dictionary<CSteamID, string>();
-            PlayersHidden = new Dictionary<CSteamID, DateTime?>();
-            PlayersHiddenCooldown = new Dictionary<CSteamID, DateTime?>();
-            PlayersHiddenDuration = new Dictionary<CSteamID, double>();
+            Nodes = new Dictionary<CSteamID, Nodes>();
+            Chat = new Dictionary<int, Chat>();
+            LastChatID = 0;
 
             U.Events.OnPlayerConnected += Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected += Events_OnPlayerDisconnected;
@@ -57,16 +48,32 @@ namespace NEXIS.Livemap
             UnturnedPlayerEvents.OnPlayerRevive += Events_OnPlayerRevive;
             UnturnedPlayerEvents.OnPlayerChatted += Events_OnPlayerChatted;
 
+            // load connected players if loaded on-the-fly
+            if (Provider.clients.Count > 0)
+            {
+                Logger.Log(Provider.clients.Count + " are currently connected. Loading...", ConsoleColor.Yellow);
+
+                new Thread(() =>
+                {
+                    // loop through all players
+                    for (int i = 0; i < Provider.clients.Count; i++)
+                    {
+                        SteamPlayer plr = Provider.clients[i];
+
+                        if (plr == null) continue;
+
+                        UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(plr);
+
+                        Events_OnPlayerConnected(player);
+                    }
+                }).Start();
+            }
+
             Logger.Log("Livemaps successfully loaded!", ConsoleColor.Green);
         }
 
         protected override void Unload()
-        {
-            if (Database != null)
-                Database.CleanUp();
-            else
-                Logger.Log("FATAL ERROR: Could not connect to database! You must configure your MySQL settings first!", ConsoleColor.Red);
-            
+        {            
             U.Events.OnPlayerConnected -= Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead -= Events_OnPlayerDead;
@@ -78,47 +85,92 @@ namespace NEXIS.Livemap
         
         public override TranslationList DefaultTranslations => new TranslationList()
         {
-            {"livemap_command_usage", "Usage: Type: /livemap to toggle hiding yourself from the Livemap."},
             {"livemap_hidden_disabled", "Livemap hiding is currently disabled! :("},
-            {"livemap_hidden_true", "Your location is hidden on the Livemap for the next {0}!"},
-            {"livemap_hidden_false", "Your location is now visible to anyone on the Livemap!"},
-            {"livemap_hidden_cooldown", "You must wait {0} before you can hide your location on the Livemap again!"},
-            {"livemap_hidden_cooldown_end", "Livemap cooldown expired! You can hide your location again!!"},
-            {"livemap_hidden_cooldown_start", "Livemap hiding expired! You must wait {0} to hide again!"},
-            {"livemap_hidden_cooldown_remaining", "You must wait {0} before you can hide yourself on the Livemap again!"}
+            {"livemap_hidden_true", "Your location is hidden on the Livemap!"},
+            {"livemap_hidden_false", "Your location is now visible to anyone on the Livemap!"}
         };
         
         #endregion
         
         #region Events
 
-        /* Player Connected */
-        public void Events_OnPlayerConnected(UnturnedPlayer player) => Database.OnPlayerConnected(player);
-
-        /* Player Disconnect */
-        public void Events_OnPlayerDisconnected(UnturnedPlayer player)
+        public void Events_OnPlayerConnected(UnturnedPlayer player)
         {
-            // remove player from hidden dictionary
-            if (PlayersHidden.ContainsKey(player.CSteamID))
-                PlayersHidden.Remove(player.CSteamID);
+            new Thread(() =>
+            {
+                // get player avatar from steam
+                ServicePointManager.ServerCertificateValidationCallback += (o, certificate, chain, errors) => true;
+                XmlDocument xml = new XmlDocument();
+                xml.Load("https://steamcommunity.com/profiles/" + player.CSteamID.ToString() + "?xml=1");
+                XmlNode node = xml.SelectSingleNode(String.Format("//*[local-name()='{0}']", "avatarMedium"));
 
-            // remove player from cooldown dictionary
-            if (PlayersHiddenCooldown.ContainsKey(player.CSteamID))
-                PlayersHiddenCooldown.Remove(player.CSteamID);
+                // create new player node
+                Nodes plr = new Nodes { };
+                plr.Avatar = node.InnerText;
+                plr.CharacterName = player.CharacterName;
+                plr.ConnectionTime = DateTime.Now;
+                plr.Dead = player.Dead;
+                plr.Experience = player.Experience;
+                plr.GodMode = player.GodMode;
+                plr.Health = player.Health;
+                plr.Hunger = player.Hunger;
+                plr.Infection = player.Infection;
+                plr.IP = player.IP;
+                plr.IsAdmin = player.IsAdmin;
+                plr.IsInVehicle = player.IsInVehicle;
+                plr.IsPro = player.IsPro;
+                plr.Ping = player.Ping;
+                plr.Position = player.Position.ToString();
+                plr.Reputation = player.Reputation;
+                plr.Stamina = player.Stamina;
+                plr.SteamID = player.CSteamID;
+                plr.Thirst = player.Thirst;
+                plr.VanishMode = player.VanishMode;
+                //plr.Skin = ColorTypeConverter.ToRGBHex(player.Player.clothing.skin);
+                plr.Face = player.Player.clothing.face.ToString();
+                plr.Hidden = false;
 
-            // update player `last_disconnect`
-            Database.OnPlayerDisconnected(player);
+                Nodes.Add(player.CSteamID, plr);
+            }).Start();
         }
 
-        // Saves player corpose position
-        public void Events_OnPlayerDead(UnturnedPlayer player, Vector3 position) => Instance.Database.OnPlayerDead(player, position);
+        public void Events_OnPlayerDisconnected(UnturnedPlayer player)
+        {
+            // remove player from player nodes
+            if (Nodes.ContainsKey(player.CSteamID))
+                Nodes.Remove(player.CSteamID);
+        }
 
-        // player respawned, update dead status
-        public void Events_OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle) => Database.OnPlayerRevive(player, position, angle);
+        public void Events_OnPlayerDead(UnturnedPlayer player, Vector3 position)
+        {
+            // update dead status
+            Nodes[player.CSteamID].Dead = player.Dead;
+        }
 
-        // save world chat
-        public void Events_OnPlayerChatted(UnturnedPlayer player, ref Color color, string message, EChatMode chatMode,
-            ref bool cancel) => Database.OnPlayerChatted(player, ref color, message, chatMode);
+        public void Events_OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle)
+        {
+            // update dead status
+            Nodes[player.CSteamID].Dead = player.Dead;
+        }
+
+        public void Events_OnPlayerChatted(UnturnedPlayer player, ref Color color, string message, EChatMode chatMode, ref bool cancel)
+        {
+            if (Configuration.Instance.WorldChatEnabled && chatMode == EChatMode.GLOBAL)
+            {
+                if (message.StartsWith("/") && !Configuration.Instance.ShowCommandsInChat)
+                    return;
+
+                // create new chat message
+                Chat msg = new Chat {};
+                msg.SteamID = player.CSteamID;
+                msg.CharacterName = player.CharacterName;
+                msg.Avatar = Nodes[player.CSteamID].Avatar;
+                msg.IsAdmin = player.IsAdmin;
+                msg.Message = message;
+
+                Chat.Add(LastChatID++, msg);
+            }
+        }
 
         #endregion
 
@@ -126,66 +178,198 @@ namespace NEXIS.Livemap
         {
             if (Instance.State != PluginState.Loaded) return;
 
-            /* Update Database */
             if (Instance.LastRefresh == null || (DateTime.Now - Instance.LastRefresh.Value).TotalSeconds > Instance.Configuration.Instance.LivemapRefreshInterval)
-                UpdateDatabase();
-
-            /* Update Player Cooldown */
-            if (!Instance.Configuration.Instance.PlayerHideCooldownEnabled) return;
-            
-            /* Livemap Hide Cooldown Expiration */
-            HideCooldownExpiration();
-
-            /* Player Hide Expiration */
-            PlayerHideExpiration();
+            {
+                if (Configuration.Instance.MySQLEnabled)
+                {
+                    /* Update MySQL */
+                    /* TODO */
+                }
+                else
+                {
+                    /* Update JSON */
+                    UpdatePlayers();
+                    SendData();
+                }
+                    
+            }
         }
 
-        public void UpdateDatabase()
+        public void UpdatePlayers()
         {
-            // refresh server database data
-            Database.UpdateServerData();
+            new Thread(() =>
+            {            
+                // loop through all players
+                for (int i = 0; i < Provider.clients.Count; i++)
+                {
+                    SteamPlayer plr = Provider.clients[i];
 
-            // update each connected player in the database
-            Database.UpdateAllPlayers();
+                    if (plr == null) continue;
 
-            // update refresh timestamp
+                    UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(plr);
+
+                    // update player data
+                    Nodes[player.CSteamID].Position = player.Position.ToString();
+                    Nodes[player.CSteamID].Reputation = player.Reputation;
+                    Nodes[player.CSteamID].Experience = player.Experience;
+                    Nodes[player.CSteamID].Face = player.Player.clothing.face.ToString();
+                    //Nodes[player.CSteamID].Skin = ColorTypeConverter.ToRGBHex(player.Player.clothing.skin);
+                    Nodes[player.CSteamID].VanishMode = player.VanishMode;
+                    Nodes[player.CSteamID].GodMode = player.GodMode;
+                    Nodes[player.CSteamID].IsAdmin = player.IsAdmin;
+                    Nodes[player.CSteamID].IsInVehicle = player.IsInVehicle;
+                    Nodes[player.CSteamID].Dead = player.Dead;
+                    Nodes[player.CSteamID].Health = player.Health;
+                    Nodes[player.CSteamID].Hunger = player.Hunger;
+                    Nodes[player.CSteamID].Thirst = player.Thirst;
+                    Nodes[player.CSteamID].Infection = player.Infection;
+                    Nodes[player.CSteamID].Stamina = player.Stamina;
+                    Nodes[player.CSteamID].Bleeding = player.Bleeding;
+                    Nodes[player.CSteamID].Broken = player.Broken;
+                }
+            }).Start();
+
+            // update refresh interval
             LastRefresh = DateTime.Now;
         }
 
-        public void HideCooldownExpiration()
+        public void SendData()
         {
-            foreach (KeyValuePair<CSteamID, DateTime?> cooldownPlr in PlayersHiddenCooldown)
+            new Thread(() =>
             {
-                /* If player cooldown not expired, skip player */
-                if (!((DateTime.Now - (DateTime) cooldownPlr.Value).TotalSeconds >
-                      Instance.Configuration.Instance.PlayerHideCooldownDuration)) continue;
-                
-                // remove player cooldown
-                Instance.PlayersHiddenCooldown.Remove(cooldownPlr.Key);
+                ServicePointManager.ServerCertificateValidationCallback += (o, certificate, chain, errors) => true;
 
-                UnturnedChat.Say(UnturnedPlayer.FromCSteamID(cooldownPlr.Key), Instance.Translations.Instance.Translate("livemap_hidden_cooldown_end"));
-            }
+                try { 
+                    var httpWebRequest = (HttpWebRequest)WebRequest.Create(Instance.Configuration.Instance.WebsiteURI);
+                    httpWebRequest.ContentType = "application/json";
+                    httpWebRequest.Method = "POST";
+
+                    using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                    {
+                        string json = "{";
+
+                            json += returnJSONServer();
+
+                            json += returnJSONPlayers();
+
+                            if (Configuration.Instance.WorldChatEnabled)
+                                json += returnJSONChat();
+   
+                        json += "}";
+
+
+                        streamWriter.Write(json);
+                        streamWriter.Flush();
+                        streamWriter.Close();
+                    }
+
+                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+                    if (Configuration.Instance.LivemapDebug)
+                        Console.WriteLine("Livemap Update Response: {0}", httpResponse.StatusDescription);
+
+                }
+                catch (WebException e)
+                {
+                    Console.WriteLine("Livemap WebException Raised. The following error occurred : {0} :: {1}", e.Status, e.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("The following Livemap Exception was raised : {0}", e.Message);
+                }
+
+            }).Start();
         }
 
-        public void PlayerHideExpiration()
+        public string returnJSONServer()
         {
-            foreach (KeyValuePair<CSteamID, DateTime?> hiddenPlr in PlayersHidden)
-            {
-                /* If player hide not expired, skip player */
-                if (!((DateTime.Now - (DateTime) hiddenPlr.Value).TotalSeconds >
-                      Configuration.Instance.PlayerHideDuration)) continue;
-                
-                // add player to cooldown
-                PlayersHiddenCooldown.Add(hiddenPlr.Key, DateTime.Now);
-
-                // unhide player
-                PlayersHidden.Remove(hiddenPlr.Key);
-
-                UnturnedChat.Say(UnturnedPlayer.FromCSteamID(hiddenPlr.Key), Translations.Instance.Translate("livemap_hidden_cooldown_start", Configuration.Instance.PlayerHideCooldownDuration + " seconds"));
-            }
+            return "\"Server\": {" +
+                    "\"ID\":\"" + Provider.serverID + "\"," +
+                    "\"Name\":\"" + Provider.serverName + "\"," +
+                    "\"Connect\":\"" + Configuration.Instance.ConnectionAddress + "\"," +
+                    "\"Map\":\"" + Provider.map + "\"," +
+                    "\"MaxPlayers\":\"" + Provider.maxPlayers + "\"," +
+                    "\"PlayersOnline\":\"" + Provider.clients.Count + "\"," +
+                    "\"LastRefresh\":\"" + DateTime.Now + "\"," +
+                    "\"Time\":\"" + LightingManager.time + "\"," +
+                    "\"Cycle\":\"" + LightingManager.cycle + "\"," +
+                    "\"FullMoon\":\"" + LightingManager.isFullMoon + "\"" +
+                    "}";
         }
-        
-        public bool IsPlayerHidden(UnturnedPlayer player) => Instance.PlayersHidden.ContainsKey(player.CSteamID);
-    }
-        
+
+        public string returnJSONPlayers()
+        {
+            string json = "";
+            int count = 0;
+
+            json += ",\"Players\": {";
+            foreach (KeyValuePair<CSteamID, Nodes> Node in Nodes)
+            {
+                count++;
+
+                json += "\"" + Node.Value.SteamID + "\": {" +
+                        "\"CharacterName\":\"" + Node.Value.CharacterName + "\"," +
+                        "\"Position\":\"" + Node.Value.Position + "\"," +
+                        "\"Reputation\":\"" + Node.Value.Reputation + "\"," +
+                        "\"Avatar\":\"" + Node.Value.Avatar + "\"," +
+                        "\"Face\":\"" + Node.Value.Face + "\"," +
+                        "\"IsInVehicle\":\"" + Node.Value.IsInVehicle + "\"," +
+                        "\"VanishMode\":\"" + Node.Value.VanishMode + "\"," +
+                        "\"GodMode\":\"" + Node.Value.GodMode + "\"," +
+                        "\"IsAdmin\":\"" + Node.Value.IsAdmin + "\"," +
+                        "\"Dead\":\"" + Node.Value.Dead + "\"," +
+                        "\"Health\":\"" + Node.Value.Health + "\"," +
+                        "\"Hunger\":\"" + Node.Value.Hunger + "\"," +
+                        "\"Thirst\":\"" + Node.Value.Thirst + "\"," +
+                        "\"Infection\":\"" + Node.Value.Infection + "\"," +
+                        "\"Stamina\":\"" + Node.Value.Stamina + "\"," +
+                        "\"Bleeding\":\"" + Node.Value.Bleeding + "\"," +
+                        "\"Broken\":\"" + Node.Value.Broken + "\"," +
+                        "\"Hidden\":\"" + Node.Value.Hidden + "\"" +
+                        "}";
+
+                if (count < Nodes.Count)
+                    json += ",";
+
+            }
+            json += "}";
+
+            return json;
+        }
+
+        public string returnJSONChat()
+        {
+            string json = "";
+            int count = 0;
+
+            json += ",\"Chat\": {";
+            foreach (KeyValuePair<int, Chat> Message in Chat)
+            {
+                count++;
+
+                json += "\"" + Message.Key + "\": {" +
+                    "\"SteamID\":\"" + Message.Value.SteamID + "\"," +
+                    "\"CharacterName\":\"" + Message.Value.CharacterName + "\"," +
+                    "\"Avatar\":\"" + Message.Value.Avatar + "\"," +
+                    "\"isAdmin\":\"" + Message.Value.IsAdmin + "\"," +
+                    "\"Message\":\"" + Message.Value.Message + "\"" +
+                    "}";
+
+                if (count < Chat.Count)
+                    json += ",";
+            }
+            json += "}";
+
+            Chat.Clear();
+
+            return json;
+        }
+
+        public static class ColorTypeConverter
+        {
+            public static string ToRGBHex(Color c) => $"#{ToByte(c.r):X2}{ToByte(c.g):X2}{ToByte(c.b):X2}";
+
+            private static byte ToByte(float f) => (byte)(Mathf.Clamp01(f) * 255);
+        }
+    } 
 }
