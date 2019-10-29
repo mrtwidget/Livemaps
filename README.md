@@ -6,7 +6,7 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 Current Release:
 ----------------
-![alt text](https://i.imgur.com/3TiNzCU.gif "Livemaps v0.3")
+![alt text](http://nexisrealms.com/livemap/livemapexample.gif "Livemaps v0.3")
 
 - **Livemap v0.3**
     - Livemap Demo: [nexisrealms.com/livemap](http://nexisrealms.com/livemap)
