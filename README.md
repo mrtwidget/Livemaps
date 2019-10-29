@@ -1,15 +1,15 @@
 # Livemaps
 
-This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries for the [Steam](http://store.steampowered.com/) game [Unturned](http://store.steampowered.com/app/304930/). The Rocket Mod plugin collects server, player, and chat data recurrently and then saves the retrieved data to a user-configured MySQL database. The API provides an AJAX interface for retrieving the latest JSON-encoded server data. Livemap API responses are then used to update the WebUI maps.
+This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries for the [Steam](http://store.steampowered.com/) game [Unturned](http://store.steampowered.com/app/304930/). This Rocket Mod plugin collects server, player, and chat data recurrently and then saves the retrieved data to a user-configured MySQL database or uploads valid JSON to a web address of your choosing. The API provides an AJAX interface for retrieving the latest JSON-encoded server data. Livemap API responses are then used to update the WebUI maps.
 
 *The WebUI portion of this plugin is optional*, and is intended only as a default theme for this project. The API may be used independently to support fully custom livemap themes and features.
 
 Current Release:
 ----------------
-![picture alt](http://nexisrealms.com/images/hosted/livemaps-0.2-cover.png "Livemaps v0.2")
+![picture alt](https://i.imgur.com/3TiNzCU.gif "Livemaps v0.3")
 
-- **Livemap v0.2**
-    - Livemap Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
+- **Livemap v0.3**
+    - Livemap Demo: [nexisrealms.com](http://nexisrealms.com/livemap)
 
 How to Install:
 ---------------
@@ -22,14 +22,15 @@ There are three parts to this plugin:
 1. Compile this project
 2. Copy the compiled `Livemap.dll` to your Rocket Mod plugin directory
 3. Start/stop your server to generate `Livemap.configuration.xml`
-4. Edit `Livemap.configuration.xml` and configure MySQL database settings
-5. Add a Rocket Mod permission for the /livemap command by adding it to your `Permissions.config.xml`
-    - *Example*: `<Permission Cooldown="0">livemap</Permission>`
+4. Edit `Livemap.configuration.xml` and configure MySQL database settings (if desired)
+5. Add a Rocket Mod permission for the /hide command by adding it to your `Permissions.config.xml`
+    - *Example*: `<Permission Cooldown="0">hide</Permission>`
 6. Start Unturned Server
 
 ***WebUI***
 1. Copy the complete contents of the `www` folder to your web server.
 
+** INFORMATION BELOW HAS CHANGED. API SUPPORT WILL BE ADDED IN UPCOMING UPDATE **
 ***API***
 1. Edit `www/api/config.api.php` and configure your MySQL database settings
     - *Note: For standalone API usage, copy only the `www/api` folder to your web server*
@@ -157,13 +158,12 @@ API Returnable Fields:
 **Requirements:**
 - PHP 5.6.+
 - MySQL 5.6.5+
-    - *It is **required** to have a minimum MySQL version of **5.6.5** to use this plugin. This is to support the use of tables with multiple timestamp fields.*
+    - *It is **required** to have a minimum MySQL version of **5.6.5** to use this plugin (if mysql is enabled). This is to support the use of tables with multiple timestamp fields.*
 
 ---
 
 **Resources:**
-- Livemap Demo: [nexisrealms.com](http://nexisrealms.com/dev/Livemaps)
-- Trello: [https://trello.com/b/4GiQoxyK](https://trello.com/b/4GiQoxyK)
+- Livemap Demo: [nexisrealms.com](http://nexisrealms.com/livemap)
 
 ---
 
