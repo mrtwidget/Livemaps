@@ -3,12 +3,10 @@ using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
-using Rocket.Unturned.Chat;
 using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Net;
-using System.Text;
 using System.Xml;
 using System.IO;
 using System.Threading;
@@ -22,13 +20,16 @@ namespace NEXIS.Livemap
     public class Livemap : RocketPlugin<LivemapConfiguration>
     {
         #region Fields
-        
+
         public static Livemap Instance;
 
         public DateTime? LastRefresh;
+        public Server Server;
         public Dictionary<CSteamID, Nodes> Nodes;
         public Dictionary<int, Chat> Chat;
         public int LastChatID;
+
+        public Database DB;
 
         #endregion
 
@@ -37,10 +38,14 @@ namespace NEXIS.Livemap
         protected override void Load()
         {
             Instance = this;
-            
+
+            Server = new Server();
             Nodes = new Dictionary<CSteamID, Nodes>();
             Chat = new Dictionary<int, Chat>();
             LastChatID = 0;
+
+            if (Configuration.Instance.MySQLEnabled)
+                DB = new Database();
 
             U.Events.OnPlayerConnected += Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected += Events_OnPlayerDisconnected;
@@ -53,45 +58,46 @@ namespace NEXIS.Livemap
             {
                 Logger.Log(Provider.clients.Count + " are currently connected. Loading...", ConsoleColor.Yellow);
 
-                new Thread(() =>
+                // loop through all players
+                for (int i = 0; i < Provider.clients.Count; i++)
                 {
-                    // loop through all players
-                    for (int i = 0; i < Provider.clients.Count; i++)
-                    {
-                        SteamPlayer plr = Provider.clients[i];
+                    SteamPlayer plr = Provider.clients[i];
 
-                        if (plr == null) continue;
+                    if (plr == null) continue;
 
-                        UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(plr);
+                    UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(plr);
 
-                        Events_OnPlayerConnected(player);
-                    }
-                }).Start();
+                    Events_OnPlayerConnected(player);
+                }
             }
 
-            Logger.Log("Livemaps successfully loaded!", ConsoleColor.Green);
+            Logger.Log("Successfully loaded!", ConsoleColor.Green);
         }
 
         protected override void Unload()
-        {            
+        {
             U.Events.OnPlayerConnected -= Events_OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= Events_OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerDead -= Events_OnPlayerDead;
             UnturnedPlayerEvents.OnPlayerRevive -= Events_OnPlayerRevive;
             UnturnedPlayerEvents.OnPlayerChatted -= Events_OnPlayerChatted;
 
-            Logger.Log("Livemaps successfully unloaded!", ConsoleColor.Green);
+            // close database connection if enabled
+            if (Configuration.Instance.MySQLEnabled)
+                DB.CleanUp();
+
+            Logger.Log("Successfully unloaded!", ConsoleColor.Yellow);
         }
-        
+
         public override TranslationList DefaultTranslations => new TranslationList()
         {
             {"livemap_hidden_disabled", "Livemap hiding is currently disabled! :("},
             {"livemap_hidden_true", "Your location is hidden on the Livemap!"},
             {"livemap_hidden_false", "Your location is now visible to anyone on the Livemap!"}
         };
-        
+
         #endregion
-        
+
         #region Events
 
         public void Events_OnPlayerConnected(UnturnedPlayer player)
@@ -118,7 +124,6 @@ namespace NEXIS.Livemap
                 plr.IP = player.IP;
                 plr.IsAdmin = player.IsAdmin;
                 plr.IsInVehicle = player.IsInVehicle;
-                plr.IsPro = player.IsPro;
                 plr.Ping = player.Ping;
                 plr.Position = player.Position.ToString();
                 plr.Reputation = player.Reputation;
@@ -126,11 +131,14 @@ namespace NEXIS.Livemap
                 plr.SteamID = player.CSteamID;
                 plr.Thirst = player.Thirst;
                 plr.VanishMode = player.VanishMode;
-                //plr.Skin = ColorTypeConverter.ToRGBHex(player.Player.clothing.skin);
                 plr.Face = player.Player.clothing.face.ToString();
                 plr.Hidden = false;
 
                 Nodes.Add(player.CSteamID, plr);
+
+                // update database if enabled
+                if (Configuration.Instance.MySQLEnabled)
+                    DB.OnPlayerConnected(player);
             }).Start();
         }
 
@@ -145,30 +153,44 @@ namespace NEXIS.Livemap
         {
             // update dead status
             Nodes[player.CSteamID].Dead = player.Dead;
+
+            // update database if enabled
+            if (Configuration.Instance.MySQLEnabled)
+                DB.OnPlayerDead(player);
         }
 
         public void Events_OnPlayerRevive(UnturnedPlayer player, Vector3 position, byte angle)
         {
             // update dead status
             Nodes[player.CSteamID].Dead = player.Dead;
+
+            // update database if enabled
+            if (Configuration.Instance.MySQLEnabled)
+                DB.OnPlayerRevive(player);
         }
 
         public void Events_OnPlayerChatted(UnturnedPlayer player, ref Color color, string message, EChatMode chatMode, ref bool cancel)
         {
             if (Configuration.Instance.WorldChatEnabled && chatMode == EChatMode.GLOBAL)
             {
-                if (message.StartsWith("/") && !Configuration.Instance.ShowCommandsInChat)
+                if ((message.StartsWith("/") || message.StartsWith("@")) && !Configuration.Instance.ShowCommandsInChat)
                     return;
 
-                // create new chat message
-                Chat msg = new Chat {};
-                msg.SteamID = player.CSteamID;
-                msg.CharacterName = player.CharacterName;
-                msg.Avatar = Nodes[player.CSteamID].Avatar;
-                msg.IsAdmin = player.IsAdmin;
-                msg.Message = message;
+                if (Configuration.Instance.MySQLEnabled)
+                    // add message to database
+                    DB.OnPlayerChatted(player, message);
+                else
+                {
+                    // create new chat message
+                    Chat msg = new Chat { };
+                    msg.SteamID = player.CSteamID;
+                    msg.CharacterName = player.CharacterName;
+                    msg.Avatar = Nodes[player.CSteamID].Avatar;
+                    msg.IsAdmin = player.IsAdmin;
+                    msg.Message = message;
 
-                Chat.Add(LastChatID++, msg);
+                    Chat.Add(LastChatID++, msg);
+                }
             }
         }
 
@@ -180,25 +202,49 @@ namespace NEXIS.Livemap
 
             if (Instance.LastRefresh == null || (DateTime.Now - Instance.LastRefresh.Value).TotalSeconds > Instance.Configuration.Instance.LivemapRefreshInterval)
             {
+                /* Update Data */
+                UpdateServer();
+                UpdatePlayers();
+
+                /* Send Data */
                 if (Configuration.Instance.MySQLEnabled)
-                {
-                    /* Update MySQL */
-                    /* TODO */
-                }
+                    SendDatabaseData();
                 else
-                {
-                    /* Update JSON */
-                    UpdatePlayers();
-                    SendData();
-                }
-                    
+                    SendJSONData();
+
+                // update refresh interval
+                LastRefresh = DateTime.Now;
             }
+        }
+
+        public void UpdateServer()
+        {
+            new Thread(() =>
+            {
+                Server.ID = Provider.serverID;
+                Server.Name = Provider.serverName;
+                Server.ConnectionAddress = Configuration.Instance.ConnectionAddress;
+                Server.Map = Provider.map;
+                Server.MaxPlayers = Provider.maxPlayers;
+                Server.PlayersOnline = Provider.clients.Count;
+                Server.LastRefresh = DateTime.Now;
+                Server.Time = LightingManager.time;
+                Server.Cycle = LightingManager.cycle;
+                Server.FullMoon = LightingManager.isFullMoon;
+                Server.Version = Provider.APP_VERSION;
+                Server.PVP = Provider.isPvP;
+                Server.Gold = Provider.isGold;
+                Server.HasCheats = Provider.hasCheats;
+                Server.HideAdmins = Provider.hideAdmins;
+                Server.Mode = Provider.mode.ToString();
+                Server.RefreshInterval = Configuration.Instance.LivemapRefreshInterval;
+            }).Start();
         }
 
         public void UpdatePlayers()
         {
             new Thread(() =>
-            {            
+            {
                 // loop through all players
                 for (int i = 0; i < Provider.clients.Count; i++)
                 {
@@ -213,7 +259,6 @@ namespace NEXIS.Livemap
                     Nodes[player.CSteamID].Reputation = player.Reputation;
                     Nodes[player.CSteamID].Experience = player.Experience;
                     Nodes[player.CSteamID].Face = player.Player.clothing.face.ToString();
-                    //Nodes[player.CSteamID].Skin = ColorTypeConverter.ToRGBHex(player.Player.clothing.skin);
                     Nodes[player.CSteamID].VanishMode = player.VanishMode;
                     Nodes[player.CSteamID].GodMode = player.GodMode;
                     Nodes[player.CSteamID].IsAdmin = player.IsAdmin;
@@ -228,18 +273,16 @@ namespace NEXIS.Livemap
                     Nodes[player.CSteamID].Broken = player.Broken;
                 }
             }).Start();
-
-            // update refresh interval
-            LastRefresh = DateTime.Now;
         }
 
-        public void SendData()
+        public void SendJSONData()
         {
             new Thread(() =>
             {
                 ServicePointManager.ServerCertificateValidationCallback += (o, certificate, chain, errors) => true;
 
-                try { 
+                try
+                {
                     var httpWebRequest = (HttpWebRequest)WebRequest.Create(Instance.Configuration.Instance.WebsiteURI);
                     httpWebRequest.ContentType = "application/json";
                     httpWebRequest.Method = "POST";
@@ -248,13 +291,13 @@ namespace NEXIS.Livemap
                     {
                         string json = "{";
 
-                            json += returnJSONServer();
+                        json += returnJSONServer();
 
-                            json += returnJSONPlayers();
+                        json += returnJSONPlayers();
 
-                            if (Configuration.Instance.WorldChatEnabled)
-                                json += returnJSONChat();
-   
+                        if (Configuration.Instance.WorldChatEnabled)
+                            json += returnJSONChat();
+
                         json += "}";
 
 
@@ -281,19 +324,35 @@ namespace NEXIS.Livemap
             }).Start();
         }
 
+        public void SendDatabaseData()
+        {
+            new Thread(() =>
+            {
+                DB.UpdateServerData();
+                DB.UpdateAllPlayers();
+            }).Start();
+        }
+
         public string returnJSONServer()
         {
             return "\"Server\": {" +
-                    "\"ID\":\"" + Provider.serverID + "\"," +
-                    "\"Name\":\"" + Provider.serverName + "\"," +
-                    "\"Connect\":\"" + Configuration.Instance.ConnectionAddress + "\"," +
-                    "\"Map\":\"" + Provider.map + "\"," +
-                    "\"MaxPlayers\":\"" + Provider.maxPlayers + "\"," +
-                    "\"PlayersOnline\":\"" + Provider.clients.Count + "\"," +
-                    "\"LastRefresh\":\"" + DateTime.Now + "\"," +
-                    "\"Time\":\"" + LightingManager.time + "\"," +
-                    "\"Cycle\":\"" + LightingManager.cycle + "\"," +
-                    "\"FullMoon\":\"" + LightingManager.isFullMoon + "\"" +
+                    "\"ID\":\"" + Server.ID + "\"," +
+                    "\"Name\":\"" + Server.Name + "\"," +
+                    "\"ConnectionAddress\":\"" + Server.ConnectionAddress + "\"," +
+                    "\"Map\":\"" + Server.Map + "\"," +
+                    "\"MaxPlayers\":\"" + Server.MaxPlayers + "\"," +
+                    "\"PlayersOnline\":\"" + Server.PlayersOnline + "\"," +
+                    "\"LastRefresh\":\"" + Server.LastRefresh + "\"," +
+                    "\"Time\":\"" + Server.Time + "\"," +
+                    "\"Cycle\":\"" + Server.Cycle + "\"," +
+                    "\"FullMoon\":\"" + Server.FullMoon + "\"," +
+                    "\"Version\":\"" + Server.Version + "\"," +
+                    "\"PVP\":\"" + Server.PVP + "\"," +
+                    "\"Gold\":\"" + Server.Gold + "\"," +
+                    "\"HasCheats\":\"" + Server.HasCheats + "\"," +
+                    "\"HideAdmins\":\"" + Server.HideAdmins + "\"," +
+                    "\"Mode\":\"" + Server.Mode + "\"," +
+                    "\"RefreshInterval\":\"" + Server.RefreshInterval + "\"" +
                     "}";
         }
 
@@ -365,11 +424,5 @@ namespace NEXIS.Livemap
             return json;
         }
 
-        public static class ColorTypeConverter
-        {
-            public static string ToRGBHex(Color c) => $"#{ToByte(c.r):X2}{ToByte(c.g):X2}{ToByte(c.b):X2}";
-
-            private static byte ToByte(float f) => (byte)(Mathf.Clamp01(f) * 255);
-        }
-    } 
+    }
 }
