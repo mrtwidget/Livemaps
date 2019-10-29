@@ -6,10 +6,10 @@ This plugin was developed using [Rocket Mod](https://rocketmod.net/) libraries f
 
 Current Release:
 ----------------
-![picture alt](https://i.imgur.com/3TiNzCU.gif "Livemaps v0.3")
+![alt text](https://i.imgur.com/3TiNzCU.gif "Livemaps v0.3")
 
 - **Livemap v0.3**
-    - Livemap Demo: [nexisrealms.com](http://nexisrealms.com/livemap)
+    - Livemap Demo: [nexisrealms.com/livemap](http://nexisrealms.com/livemap)
 
 How to Install:
 ---------------
@@ -31,6 +31,7 @@ There are three parts to this plugin:
 1. Copy the complete contents of the `www` folder to your web server.
 
 ** INFORMATION BELOW HAS CHANGED. API SUPPORT WILL BE ADDED IN UPCOMING UPDATE **
+
 ***API***
 1. Edit `www/api/config.api.php` and configure your MySQL database settings
     - *Note: For standalone API usage, copy only the `www/api` folder to your web server*
