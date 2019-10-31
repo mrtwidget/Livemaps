@@ -26,6 +26,7 @@ namespace NEXIS.Livemap
         public float Ping { get; set; }
         public string IP { get; set; }
         public string Face { get; set; }
+        public bool Gold { get; set; }
         public bool Hidden { get; set; }
         public DateTime ConnectionTime { get; set; }
     }

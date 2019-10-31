@@ -92,6 +92,7 @@ namespace NEXIS.Livemap
                     "infection INT(8) NULL," +
                     "experience INT(8) NULL," +
                     "reputation INT(8) NULL," +
+                    "gold INT(8) NOT NULL DEFAULT 0," +
                     "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(CSteamID));";
 
@@ -201,8 +202,8 @@ namespace NEXIS.Livemap
 
                 MySQLCommand.CommandText = string.Format(
                     result == null
-                        ? "INSERT INTO {0} (CSteamID,character_name,steam_avatar_medium,ip_address,ping,is_admin,is_god,is_vanished,in_vehicle,position,face,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation) VALUES (@CSteamID,@character_name,@steam_avatar_medium,@ip_address,@ping,@is_admin,@is_god,@is_vanished,@in_vehicle,@position,@face,@is_bleeding,@is_broken,@health,@stamina,@hunger,@thirst,@infection,@experience,@reputation)"
-                        : "UPDATE {0} SET character_name=@character_name,steam_avatar_medium=@steam_avatar_medium,ip_address=@ip_address,ping=@ping,is_admin=@is_admin,is_god=@is_god,is_vanished=@is_vanished,in_vehicle=@in_vehicle,position=@position,face=@face,is_bleeding=@is_bleeding,is_broken=@is_broken,health=@health,stamina=@stamina,hunger=@hunger,thirst=@thirst,infection=@infection,experience=@experience,reputation=@reputation WHERE CSteamID=@CSteamID",
+                        ? "INSERT INTO {0} (CSteamID,character_name,steam_avatar_medium,ip_address,ping,is_admin,is_god,is_vanished,in_vehicle,position,face,is_bleeding,is_broken,health,stamina,hunger,thirst,infection,experience,reputation,gold) VALUES (@CSteamID,@character_name,@steam_avatar_medium,@ip_address,@ping,@is_admin,@is_god,@is_vanished,@in_vehicle,@position,@face,@is_bleeding,@is_broken,@health,@stamina,@hunger,@thirst,@infection,@experience,@reputation,@gold)"
+                        : "UPDATE {0} SET character_name=@character_name,steam_avatar_medium=@steam_avatar_medium,ip_address=@ip_address,ping=@ping,is_admin=@is_admin,is_god=@is_god,is_vanished=@is_vanished,in_vehicle=@in_vehicle,position=@position,face=@face,is_bleeding=@is_bleeding,is_broken=@is_broken,health=@health,stamina=@stamina,hunger=@hunger,thirst=@thirst,infection=@infection,experience=@experience,reputation=@reputation,gold=@gold WHERE CSteamID=@CSteamID",
 
                     Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData);
 
@@ -228,6 +229,7 @@ namespace NEXIS.Livemap
                 MySQLCommand.Parameters.AddWithValue("@infection", Livemap.Instance.Nodes[player.CSteamID].Infection);
                 MySQLCommand.Parameters.AddWithValue("@experience", Livemap.Instance.Nodes[player.CSteamID].Experience);
                 MySQLCommand.Parameters.AddWithValue("@reputation", Livemap.Instance.Nodes[player.CSteamID].Reputation);
+                MySQLCommand.Parameters.AddWithValue("@gold", Livemap.Instance.Nodes[player.CSteamID].Gold);
 
                 #endregion
 

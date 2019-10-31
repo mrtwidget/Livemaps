@@ -132,6 +132,7 @@ namespace NEXIS.Livemap
                 plr.Thirst = player.Thirst;
                 plr.VanishMode = player.VanishMode;
                 plr.Face = player.Player.clothing.face.ToString();
+                plr.Gold = player.IsPro;
                 plr.Hidden = false;
 
                 Nodes.Add(player.CSteamID, plr);
@@ -384,6 +385,7 @@ namespace NEXIS.Livemap
                         "\"Stamina\":\"" + Node.Value.Stamina + "\"," +
                         "\"Bleeding\":\"" + Node.Value.Bleeding + "\"," +
                         "\"Broken\":\"" + Node.Value.Broken + "\"," +
+                        "\"Gold\":\"" + Node.Value.Gold + "\"," +
                         "\"Hidden\":\"" + Node.Value.Hidden + "\"" +
                         "}";
 
