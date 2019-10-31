@@ -145,6 +145,9 @@
     <Content Include="updates\Livemaps-0.2.0.8-to-Livemaps-0.2.0.10.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="updates\Livemaps-0.3.0.0-to-Livemaps-0.3.1.0.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="www\css\jquery-ui.min.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

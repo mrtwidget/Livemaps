@@ -92,7 +92,7 @@ namespace NEXIS.Livemap
                     "infection INT(8) NULL," +
                     "experience INT(8) NULL," +
                     "reputation INT(8) NULL," +
-                    "gold INT(8) NOT NULL DEFAULT 0," +
+                    "gold TINYINT(1) NOT NULL DEFAULT 0," +
                     "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                     "PRIMARY KEY(CSteamID));";
 
