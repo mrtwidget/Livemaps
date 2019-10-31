@@ -10,6 +10,7 @@ namespace NEXIS.Livemap
         public int LivemapRefreshInterval;
         public bool WorldChatEnabled;
         public bool PlayerHidingEnabled;
+        public bool IncludePlayerSkills;
         public bool ShowCommandsInChat;
         public string PlayerDefaultSteamAvatar;
         public string ConnectionAddress;
@@ -33,6 +34,7 @@ namespace NEXIS.Livemap
             LivemapRefreshInterval = 10;
             WorldChatEnabled = true;
             PlayerHidingEnabled = true;
+            IncludePlayerSkills = false;
             ShowCommandsInChat = false;
             PlayerDefaultSteamAvatar = "images/avatars/unknown.png";
             ConnectionAddress = "0.0.0.0:27016";

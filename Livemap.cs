@@ -3,6 +3,7 @@ using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
+using Rocket.Unturned.Skills;
 using SDG.Unturned;
 using Steamworks;
 using System;
@@ -135,6 +136,33 @@ namespace NEXIS.Livemap
                 plr.Gold = player.IsPro;
                 plr.Hidden = false;
 
+                // include player skills if enabled
+                if (Configuration.Instance.IncludePlayerSkills)
+                {
+                    plr.SkillAgriculture = player.GetSkillLevel(UnturnedSkill.Agriculture);
+                    plr.SkillCardio = player.GetSkillLevel(UnturnedSkill.Cardio);
+                    plr.SkillCooking = player.GetSkillLevel(UnturnedSkill.Cooking);
+                    plr.SkillCrafting = player.GetSkillLevel(UnturnedSkill.Crafting);
+                    plr.SkillDexerity = player.GetSkillLevel(UnturnedSkill.Dexerity);
+                    plr.SkillDiving = player.GetSkillLevel(UnturnedSkill.Diving);
+                    plr.SkillEngineer = player.GetSkillLevel(UnturnedSkill.Engineer);
+                    plr.SkillExercise = player.GetSkillLevel(UnturnedSkill.Exercise);
+                    plr.SkillFishing = player.GetSkillLevel(UnturnedSkill.Fishing);
+                    plr.SkillHealing = player.GetSkillLevel(UnturnedSkill.Healing);
+                    plr.SkillImmunity = player.GetSkillLevel(UnturnedSkill.Immunity);
+                    plr.SkillMechanic = player.GetSkillLevel(UnturnedSkill.Mechanic);
+                    plr.SkillOutdoors = player.GetSkillLevel(UnturnedSkill.Outdoors);
+                    plr.SkillOverkill = player.GetSkillLevel(UnturnedSkill.Overkill);
+                    plr.SkillParkour = player.GetSkillLevel(UnturnedSkill.Parkour);
+                    plr.SkillSharpshooter = player.GetSkillLevel(UnturnedSkill.Sharpshooter);
+                    plr.SkillSneakybeaky = player.GetSkillLevel(UnturnedSkill.Sneakybeaky);
+                    plr.SkillStrength = player.GetSkillLevel(UnturnedSkill.Strength);
+                    plr.SkillSurvival = player.GetSkillLevel(UnturnedSkill.Survival);
+                    plr.SkillToughness = player.GetSkillLevel(UnturnedSkill.Toughness);
+                    plr.SkillVitality = player.GetSkillLevel(UnturnedSkill.Vitality);
+                    plr.SkillWarmblooded = player.GetSkillLevel(UnturnedSkill.Warmblooded);
+                }                
+
                 Nodes.Add(player.CSteamID, plr);
 
                 // update database if enabled
@@ -145,6 +173,13 @@ namespace NEXIS.Livemap
 
         public void Events_OnPlayerDisconnected(UnturnedPlayer player)
         {
+            if (Configuration.Instance.MySQLEnabled)
+            {
+                // update disconnect time
+                Nodes[player.CSteamID].DisconnectTime = DateTime.Now;
+                DB.OnPlayerDisconnected(player, Nodes[player.CSteamID]);
+            }
+
             // remove player from player nodes
             if (Nodes.ContainsKey(player.CSteamID))
                 Nodes.Remove(player.CSteamID);
@@ -154,6 +189,7 @@ namespace NEXIS.Livemap
         {
             // update dead status
             Nodes[player.CSteamID].Dead = player.Dead;
+            Nodes[player.CSteamID].LastDeadPosition = player.Position.ToString();
 
             // update database if enabled
             if (Configuration.Instance.MySQLEnabled)
@@ -272,6 +308,33 @@ namespace NEXIS.Livemap
                     Nodes[player.CSteamID].Stamina = player.Stamina;
                     Nodes[player.CSteamID].Bleeding = player.Bleeding;
                     Nodes[player.CSteamID].Broken = player.Broken;
+
+                    // update player skills if enabled
+                    if (Configuration.Instance.IncludePlayerSkills)
+                    {
+                        Nodes[player.CSteamID].SkillAgriculture = player.GetSkillLevel(UnturnedSkill.Agriculture);
+                        Nodes[player.CSteamID].SkillCardio = player.GetSkillLevel(UnturnedSkill.Cardio);
+                        Nodes[player.CSteamID].SkillCooking = player.GetSkillLevel(UnturnedSkill.Cooking);
+                        Nodes[player.CSteamID].SkillCrafting = player.GetSkillLevel(UnturnedSkill.Crafting);
+                        Nodes[player.CSteamID].SkillDexerity = player.GetSkillLevel(UnturnedSkill.Dexerity);
+                        Nodes[player.CSteamID].SkillDiving = player.GetSkillLevel(UnturnedSkill.Diving);
+                        Nodes[player.CSteamID].SkillEngineer = player.GetSkillLevel(UnturnedSkill.Engineer);
+                        Nodes[player.CSteamID].SkillExercise = player.GetSkillLevel(UnturnedSkill.Exercise);
+                        Nodes[player.CSteamID].SkillFishing = player.GetSkillLevel(UnturnedSkill.Fishing);
+                        Nodes[player.CSteamID].SkillHealing = player.GetSkillLevel(UnturnedSkill.Healing);
+                        Nodes[player.CSteamID].SkillImmunity = player.GetSkillLevel(UnturnedSkill.Immunity);
+                        Nodes[player.CSteamID].SkillMechanic = player.GetSkillLevel(UnturnedSkill.Mechanic);
+                        Nodes[player.CSteamID].SkillOutdoors = player.GetSkillLevel(UnturnedSkill.Outdoors);
+                        Nodes[player.CSteamID].SkillOverkill = player.GetSkillLevel(UnturnedSkill.Overkill);
+                        Nodes[player.CSteamID].SkillParkour = player.GetSkillLevel(UnturnedSkill.Parkour);
+                        Nodes[player.CSteamID].SkillSharpshooter = player.GetSkillLevel(UnturnedSkill.Sharpshooter);
+                        Nodes[player.CSteamID].SkillSneakybeaky = player.GetSkillLevel(UnturnedSkill.Sneakybeaky);
+                        Nodes[player.CSteamID].SkillStrength = player.GetSkillLevel(UnturnedSkill.Strength);
+                        Nodes[player.CSteamID].SkillSurvival = player.GetSkillLevel(UnturnedSkill.Survival);
+                        Nodes[player.CSteamID].SkillToughness = player.GetSkillLevel(UnturnedSkill.Toughness);
+                        Nodes[player.CSteamID].SkillVitality = player.GetSkillLevel(UnturnedSkill.Vitality);
+                        Nodes[player.CSteamID].SkillWarmblooded = player.GetSkillLevel(UnturnedSkill.Warmblooded);
+                    }
                 }
             }).Start();
         }
@@ -292,12 +355,12 @@ namespace NEXIS.Livemap
                     {
                         string json = "{";
 
-                        json += returnJSONServer();
+                        json += ReturnJSONServer();
 
-                        json += returnJSONPlayers();
+                        json += ReturnJSONPlayers();
 
                         if (Configuration.Instance.WorldChatEnabled)
-                            json += returnJSONChat();
+                            json += ReturnJSONChat();
 
                         json += "}";
 
@@ -334,7 +397,7 @@ namespace NEXIS.Livemap
             }).Start();
         }
 
-        public string returnJSONServer()
+        public string ReturnJSONServer()
         {
             return "\"Server\": {" +
                     "\"ID\":\"" + Server.ID + "\"," +
@@ -357,15 +420,44 @@ namespace NEXIS.Livemap
                     "}";
         }
 
-        public string returnJSONPlayers()
+        public string ReturnJSONPlayers()
         {
             string json = "";
+            string skills = "";
             int count = 0;
 
             json += ",\"Players\": {";
             foreach (KeyValuePair<CSteamID, Nodes> Node in Nodes)
             {
                 count++;
+
+                // include skills if enabled
+                if (Configuration.Instance.IncludePlayerSkills)
+                {
+                    skills =
+                        ",\"SkillAgriculture\":\"" + Node.Value.SkillAgriculture + "\"," +
+                        "\"SkillCardio\":\"" + Node.Value.SkillCardio + "\"," +
+                        "\"SkillCooking\":\"" + Node.Value.SkillCooking + "\"," +
+                        "\"SkillCrafting\":\"" + Node.Value.SkillCrafting + "\"," +
+                        "\"SkillDexerity\":\"" + Node.Value.SkillDexerity + "\"," +
+                        "\"SkillDiving\":\"" + Node.Value.SkillDiving + "\"," +
+                        "\"SkillEngineer\":\"" + Node.Value.SkillEngineer + "\"," +
+                        "\"SkillExercise\":\"" + Node.Value.SkillExercise + "\"," +
+                        "\"SkillFishing\":\"" + Node.Value.SkillFishing + "\"," +
+                        "\"SkillHealing\":\"" + Node.Value.SkillHealing + "\"," +
+                        "\"SkillImmunity\":\"" + Node.Value.SkillImmunity + "\"," +
+                        "\"SkillMechanic\":\"" + Node.Value.SkillMechanic + "\"," +
+                        "\"SkillOutdoors\":\"" + Node.Value.SkillOutdoors + "\"," +
+                        "\"SkillOverkill\":\"" + Node.Value.SkillOverkill + "\"," +
+                        "\"SkillParkour\":\"" + Node.Value.SkillParkour + "\"," +
+                        "\"SkillSharpshooter\":\"" + Node.Value.SkillSharpshooter + "\"," +
+                        "\"SkillSneakybeaky\":\"" + Node.Value.SkillSneakybeaky + "\"," +
+                        "\"SkillStrength\":\"" + Node.Value.SkillStrength + "\"," +
+                        "\"SkillSurvival\":\"" + Node.Value.SkillSurvival + "\"," +
+                        "\"SkillToughness\":\"" + Node.Value.SkillToughness + "\"," +
+                        "\"SkillVitality\":\"" + Node.Value.SkillVitality + "\"," +
+                        "\"SkillWarmblooded\":\"" + Node.Value.SkillWarmblooded + "\"";
+                }
 
                 json += "\"" + Node.Value.SteamID + "\": {" +
                         "\"CharacterName\":\"" + Node.Value.CharacterName + "\"," +
@@ -386,7 +478,9 @@ namespace NEXIS.Livemap
                         "\"Bleeding\":\"" + Node.Value.Bleeding + "\"," +
                         "\"Broken\":\"" + Node.Value.Broken + "\"," +
                         "\"Gold\":\"" + Node.Value.Gold + "\"," +
-                        "\"Hidden\":\"" + Node.Value.Hidden + "\"" +
+                        "\"Hidden\":\"" + Node.Value.Hidden + "\"," +
+                        "\"LastDeadPosition\":\"" + Node.Value.LastDeadPosition + "\"" +
+                        skills +
                         "}";
 
                 if (count < Nodes.Count)
@@ -398,7 +492,7 @@ namespace NEXIS.Livemap
             return json;
         }
 
-        public string returnJSONChat()
+        public string ReturnJSONChat()
         {
             string json = "";
             int count = 0;

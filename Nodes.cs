@@ -28,6 +28,30 @@ namespace NEXIS.Livemap
         public string Face { get; set; }
         public bool Gold { get; set; }
         public bool Hidden { get; set; }
+        public string LastDeadPosition { get; set; }
         public DateTime ConnectionTime { get; set; }
+        public DateTime DisconnectTime { get; set; }
+        public int SkillAgriculture { get; set; }
+        public int SkillCardio { get; set; }
+        public int SkillCooking { get; set; }
+        public int SkillCrafting { get; set; }
+        public int SkillDexerity { get; set; }
+        public int SkillDiving { get; set; }
+        public int SkillEngineer { get; set; }
+        public int SkillExercise { get; set; }
+        public int SkillFishing { get; set; }
+        public int SkillHealing { get; set; }
+        public int SkillImmunity { get; set; }
+        public int SkillMechanic { get; set; }
+        public int SkillOutdoors  { get; set; }
+        public int SkillOverkill { get; set; }
+        public int SkillParkour { get; set; }
+        public int SkillSharpshooter { get; set; }
+        public int SkillSneakybeaky { get; set; }
+        public int SkillStrength { get; set; }
+        public int SkillSurvival { get; set; }
+        public int SkillToughness { get; set; }
+        public int SkillVitality { get; set; }
+        public int SkillWarmblooded { get; set; }
     }
 }

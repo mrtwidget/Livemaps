@@ -93,7 +93,33 @@ namespace NEXIS.Livemap
                     "experience INT(8) NULL," +
                     "reputation INT(8) NULL," +
                     "gold TINYINT(1) NOT NULL DEFAULT 0," +
-                    "last_connect TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                    "last_dead_position VARCHAR(32) NULL," +
+                    "skill_agriculture INT(8) NULL," +
+                    "skill_cardio INT(8) NULL," +
+                    "skill_cooking INT(8) NULL," +
+                    "skill_crafting INT(8) NULL," +
+                    "skill_dexerity INT(8) NULL," +
+                    "skill_diving INT(8) NULL," +
+                    "skill_engineer INT(8) NULL," +
+                    "skill_exercise INT(8) NULL," +
+                    "skill_fishing INT(8) NULL," +
+                    "skill_healing INT(8) NULL," +
+                    "skill_immunity INT(8) NULL," +
+                    "skill_mechanic INT(8) NULL," +
+                    "skill_outdoors INT(8) NULL," +
+                    "skill_overkill INT(8) NULL," +
+                    "skill_parkour INT(8) NULL," +
+                    "skill_sharpshooter INT(8) NULL," +
+                    "skill_sneakybeaky INT(8) NULL," +
+                    "skill_strength INT(8) NULL," +
+                    "skill_survival INT(8) NULL," +
+                    "skill_toughness INT(8) NULL," +
+                    "skill_vitality INT(8) NULL," +
+                    "skill_warmblooded INT(8) NULL," +
+                    "last_refresh TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
+                    "last_connect TIMESTAMP NULL," +
+                    "last_disconnect TIMESTAMP NULL," +
+                    "total_playtime INT(8) NOT NULL DEFAULT 0," +
                     "PRIMARY KEY(CSteamID));";
 
                     MySQLCommand.ExecuteNonQuery();
@@ -235,6 +261,37 @@ namespace NEXIS.Livemap
 
                 MySQLCommand.ExecuteNonQuery();
 
+
+                if (Livemap.Instance.Configuration.Instance.IncludePlayerSkills)
+                {
+                    MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET skill_agriculture=@skill_agriculture,skill_cardio=@skill_cardio,skill_cooking=@skill_cooking,skill_crafting=@skill_crafting,skill_dexerity=@skill_dexerity,skill_diving=@skill_diving,skill_engineer=@skill_engineer,skill_exercise=@skill_exercise,skill_fishing=@skill_fishing,skill_healing=@skill_healing,skill_immunity=@skill_immunity,skill_mechanic=@skill_mechanic,skill_outdoors=@skill_outdoors,skill_overkill=@skill_overkill,skill_parkour=@skill_parkour,skill_sharpshooter=@skill_sharpshooter,skill_sneakybeaky=@skill_sneakybeaky,skill_strength=@skill_strength,skill_survival=@skill_survival,skill_toughness=@skill_toughness,skill_vitality=@skill_vitality,skill_warmblooded=@skill_warmblooded WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+
+                    MySQLCommand.Parameters.AddWithValue("@skill_agriculture", Livemap.Instance.Nodes[player.CSteamID].SkillAgriculture);
+                    MySQLCommand.Parameters.AddWithValue("@skill_cardio", Livemap.Instance.Nodes[player.CSteamID].SkillCardio);
+                    MySQLCommand.Parameters.AddWithValue("@skill_cooking", Livemap.Instance.Nodes[player.CSteamID].SkillCooking);
+                    MySQLCommand.Parameters.AddWithValue("@skill_crafting", Livemap.Instance.Nodes[player.CSteamID].SkillCrafting);
+                    MySQLCommand.Parameters.AddWithValue("@skill_dexerity", Livemap.Instance.Nodes[player.CSteamID].SkillDexerity);
+                    MySQLCommand.Parameters.AddWithValue("@skill_diving", Livemap.Instance.Nodes[player.CSteamID].SkillDiving);
+                    MySQLCommand.Parameters.AddWithValue("@skill_engineer", Livemap.Instance.Nodes[player.CSteamID].SkillEngineer);
+                    MySQLCommand.Parameters.AddWithValue("@skill_exercise", Livemap.Instance.Nodes[player.CSteamID].SkillExercise);
+                    MySQLCommand.Parameters.AddWithValue("@skill_fishing", Livemap.Instance.Nodes[player.CSteamID].SkillFishing);
+                    MySQLCommand.Parameters.AddWithValue("@skill_healing", Livemap.Instance.Nodes[player.CSteamID].SkillHealing);
+                    MySQLCommand.Parameters.AddWithValue("@skill_immunity", Livemap.Instance.Nodes[player.CSteamID].SkillImmunity);
+                    MySQLCommand.Parameters.AddWithValue("@skill_mechanic", Livemap.Instance.Nodes[player.CSteamID].SkillMechanic);
+                    MySQLCommand.Parameters.AddWithValue("@skill_outdoors", Livemap.Instance.Nodes[player.CSteamID].SkillOutdoors);
+                    MySQLCommand.Parameters.AddWithValue("@skill_overkill", Livemap.Instance.Nodes[player.CSteamID].SkillOverkill);
+                    MySQLCommand.Parameters.AddWithValue("@skill_parkour", Livemap.Instance.Nodes[player.CSteamID].SkillParkour);
+                    MySQLCommand.Parameters.AddWithValue("@skill_sharpshooter", Livemap.Instance.Nodes[player.CSteamID].SkillSharpshooter);
+                    MySQLCommand.Parameters.AddWithValue("@skill_sneakybeaky", Livemap.Instance.Nodes[player.CSteamID].SkillSneakybeaky);
+                    MySQLCommand.Parameters.AddWithValue("@skill_strength", Livemap.Instance.Nodes[player.CSteamID].SkillStrength);
+                    MySQLCommand.Parameters.AddWithValue("@skill_survival", Livemap.Instance.Nodes[player.CSteamID].SkillSurvival);
+                    MySQLCommand.Parameters.AddWithValue("@skill_toughness", Livemap.Instance.Nodes[player.CSteamID].SkillToughness);
+                    MySQLCommand.Parameters.AddWithValue("@skill_vitality", Livemap.Instance.Nodes[player.CSteamID].SkillVitality);
+                    MySQLCommand.Parameters.AddWithValue("@skill_warmblooded", Livemap.Instance.Nodes[player.CSteamID].SkillWarmblooded);
+
+                    MySQLCommand.ExecuteNonQuery();
+                }
+
             }
             catch (MySqlException ex) { Logger.LogException(ex); }
         }
@@ -268,7 +325,24 @@ namespace NEXIS.Livemap
 
                 // update player connection time
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
-                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_connect = NULL WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_connect = NOW() WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+                MySQLCommand.ExecuteNonQuery();
+            }
+            catch (MySqlException ex) { Logger.LogException(ex); }
+        }
+
+        public void OnPlayerDisconnected(UnturnedPlayer player, Nodes node)
+        {
+            try
+            {
+                // update player disconnect time
+                MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET last_disconnect = NOW() WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+                MySQLCommand.ExecuteNonQuery();
+
+                // calculate total time played and update the database
+                double timeplayed = (node.DisconnectTime - node.ConnectionTime).TotalSeconds;
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET total_playtime = total_playtime + " + timeplayed + " WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
                 MySQLCommand.ExecuteNonQuery();
             }
             catch (MySqlException ex) { Logger.LogException(ex); }
@@ -281,7 +355,7 @@ namespace NEXIS.Livemap
                 MySqlCommand MySQLCommand = MySQLConnection.CreateCommand();
 
                 // update death location and player death status
-                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET is_dead = 1 WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
+                MySQLCommand.CommandText = "UPDATE " + Livemap.Instance.Configuration.Instance.DatabaseTableLivemapData + " SET is_dead = 1, last_dead_position = '"+ Livemap.Instance.Nodes[player.CSteamID].LastDeadPosition +"' WHERE CSteamID = '" + player.CSteamID.ToString() + "'";
                 MySQLCommand.ExecuteNonQuery();
             }
             catch (MySqlException ex) { Logger.LogException(ex); }
