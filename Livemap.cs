@@ -369,11 +369,12 @@ namespace NEXIS.Livemap
                         streamWriter.Flush();
                         streamWriter.Close();
                     }
-
-                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-                    if (Configuration.Instance.LivemapDebug)
-                        Console.WriteLine("Livemap Update Response: {0}", httpResponse.StatusDescription);
+                    
+                    using (HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse())
+                    {
+                        if (Configuration.Instance.LivemapDebug)
+                            Console.WriteLine("Livemap Update Response: {0}", httpResponse.StatusDescription);
+                    }
 
                 }
                 catch (WebException e)
