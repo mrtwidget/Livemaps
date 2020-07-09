@@ -303,7 +303,12 @@ namespace NEXIS.Livemap
                     if (player.IsInVehicle)
                     {
                         Nodes[player.CSteamID].VehicleId = player.CurrentVehicle.id;
-                        Nodes[player.CSteamID].IsDriver = player.CurrentVehicle.isDriver;
+                        if (player.CurrentVehicle.checkDriver(player.CSteamID)) {
+                            Nodes[player.CSteamID].IsDriver = true;
+                        } else
+                        {
+                            Nodes[player.CSteamID].IsDriver = false;
+                        }
                     }
                     Nodes[player.CSteamID].Dead = player.Dead;
                     Nodes[player.CSteamID].Health = player.Health;
