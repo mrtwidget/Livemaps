@@ -23,6 +23,8 @@ namespace NEXIS.Livemap
         public bool VanishMode { get; set; }
         public bool IsAdmin { get; set; }
         public bool IsInVehicle { get; set; }
+        public ushort VehicleId { get; set; }
+        public bool IsDriver { get; set; }
         public float Ping { get; set; }
         public string IP { get; set; }
         public string Face { get; set; }
