@@ -300,6 +300,16 @@ namespace NEXIS.Livemap
                     Nodes[player.CSteamID].GodMode = player.GodMode;
                     Nodes[player.CSteamID].IsAdmin = player.IsAdmin;
                     Nodes[player.CSteamID].IsInVehicle = player.IsInVehicle;
+                    if (player.IsInVehicle)
+                    {
+                        Nodes[player.CSteamID].VehicleId = player.CurrentVehicle.id;
+                        if (player.CurrentVehicle.checkDriver(player.CSteamID)) {
+                            Nodes[player.CSteamID].IsDriver = true;
+                        } else
+                        {
+                            Nodes[player.CSteamID].IsDriver = false;
+                        }
+                    }
                     Nodes[player.CSteamID].Dead = player.Dead;
                     Nodes[player.CSteamID].Health = player.Health;
                     Nodes[player.CSteamID].Hunger = player.Hunger;
@@ -369,11 +379,12 @@ namespace NEXIS.Livemap
                         streamWriter.Flush();
                         streamWriter.Close();
                     }
-
-                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-                    if (Configuration.Instance.LivemapDebug)
-                        Console.WriteLine("Livemap Update Response: {0}", httpResponse.StatusDescription);
+                    
+                    using (HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse())
+                    {
+                        if (Configuration.Instance.LivemapDebug)
+                            Console.WriteLine("Livemap Update Response: {0}", httpResponse.StatusDescription);
+                    }
 
                 }
                 catch (WebException e)
@@ -424,6 +435,7 @@ namespace NEXIS.Livemap
         {
             string json = "";
             string skills = "";
+            string vehicle = "";
             int count = 0;
 
             json += ",\"Players\": {";
@@ -456,7 +468,15 @@ namespace NEXIS.Livemap
                         "\"SkillSurvival\":\"" + Node.Value.SkillSurvival + "\"," +
                         "\"SkillToughness\":\"" + Node.Value.SkillToughness + "\"," +
                         "\"SkillVitality\":\"" + Node.Value.SkillVitality + "\"," +
-                        "\"SkillWarmblooded\":\"" + Node.Value.SkillWarmblooded + "\"";
+                        "\"SkillWarmblooded\":\"" + Node.Value.SkillWarmblooded + "\",";
+                }
+
+                // include vehicle infos if player is in vehicle
+                if (Node.Value.IsInVehicle)
+                {
+                    vehicle =
+                        ",\"VehicleId\":\"" + Node.Value.VehicleId + "\"," +
+                        "\"IsDriver\":\"" + Node.Value.IsDriver + "\"";
                 }
 
                 json += "\"" + Node.Value.SteamID + "\": {" +
@@ -481,6 +501,7 @@ namespace NEXIS.Livemap
                         "\"Hidden\":\"" + Node.Value.Hidden + "\"," +
                         "\"LastDeadPosition\":\"" + Node.Value.LastDeadPosition + "\"" +
                         skills +
+                        vehicle +
                         "}";
 
                 if (count < Nodes.Count)
